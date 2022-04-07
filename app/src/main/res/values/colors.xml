@@ -1,0 +1,7 @@
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<resources>
+  <color name="BlueGrey200">#b0bec5</color>
+  <color name="BlueGrey600">#546e7a</color>
+  <color name="BlueGrey900">#263238</color>
+  <color name="Orange300">#ffb74d</color>
+</resources>

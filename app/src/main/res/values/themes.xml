@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.OmegaterapiaLoginTheme" parent="Theme.AppCompat.Light">
+        <item name="android:statusBarColor">@color/BlueGrey600</item>
+
+        <item name="colorPrimary">@color/BlueGrey600</item>
+        <item name="colorPrimaryDark">@color/BlueGrey900</item>
+        <item name="colorAccent">@color/Orange300</item>
+    </style>
+
+    <style name="Theme.OmegaterapiaTheme" parent="Theme.AppCompat.DayNight.DarkActionBar">
+        <item name="android:statusBarColor">@color/BlueGrey900</item>
+
+        <item name="colorPrimary">@color/BlueGrey600</item>
+        <item name="colorPrimaryDark">@color/BlueGrey900</item>
+        <item name="colorAccent">@color/Orange300</item>
+
+        <item name="md_corner_radius">0dp</item>
+    </style>
+</resources>
