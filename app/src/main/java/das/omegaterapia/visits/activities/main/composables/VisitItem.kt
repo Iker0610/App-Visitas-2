@@ -241,7 +241,9 @@ fun VisitCardItem(
 
             Row(Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp), horizontalArrangement = Arrangement.SpaceAround) {
+                .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
                 val context = LocalContext.current
                 val callIntent = Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", visitCard.client.phoneNum, null))
                 val mapsIntent = Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" + Uri.encode(visitCard.client.direction.toString())))

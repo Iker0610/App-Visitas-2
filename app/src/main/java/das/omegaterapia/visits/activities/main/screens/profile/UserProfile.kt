@@ -109,12 +109,13 @@ fun UserProfileScreen(
      **                User Interface               **
      *************************************************/
 
-    Scaffold(topBar = { BackArrowTopBar(title, onBackPressed) }) {
+    Scaffold(topBar = { BackArrowTopBar(title, onBackPressed) }) { padding ->
         CenteredColumn(
             verticalArrangement = Arrangement.Top,
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
+                .padding(padding)
                 .padding(vertical = 16.dp)
         ) {
             /*------------------------------------------------

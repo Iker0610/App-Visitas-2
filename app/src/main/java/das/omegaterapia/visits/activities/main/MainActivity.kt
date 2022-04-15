@@ -326,7 +326,7 @@ private fun MainActivityScreen(
                 }
             },
         )
-        {
+        { padding ->
 
 
             Row(
