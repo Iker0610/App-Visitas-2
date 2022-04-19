@@ -45,11 +45,7 @@ interface VisitsDao {
     @Transaction
     suspend fun addVisitCard(visitCard: VisitCard): Boolean {
         return try {
-            try {
-                addClient(visitCard.client)
-            } catch (e: Exception) {
-                updateClientData(visitCard.client)
-            }
+            addOrUpdateClient(visitCard.client)
             addVisitData(visitCard.visitData)
             true
         } catch (e: SQLiteConstraintException) {
@@ -69,6 +65,13 @@ interface VisitsDao {
 
     @Update
     fun updateClientData(client: Client): Int
+
+    @Transaction
+    suspend fun addOrUpdateClient(client: Client) {
+        if (0 == updateClientData(client)) {
+            addClient(client)
+        }
+    }
 
 
     /**
