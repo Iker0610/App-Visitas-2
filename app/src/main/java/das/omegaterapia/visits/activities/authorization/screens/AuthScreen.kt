@@ -103,8 +103,9 @@ fun AuthScreen(
 
     var showSignInErrorDialog by rememberSaveable { mutableStateOf(false) }
     var showLoginErrorDialog by rememberSaveable { mutableStateOf(false) }
-    var showBiometricErrorDialogState by rememberSaveable { mutableStateOf(false) }
-    var showBiometricEnrollDialogState by rememberSaveable { mutableStateOf(false) }
+    var showBiometricErrorDialog by rememberSaveable { mutableStateOf(false) }
+    var showBiometricEnrollDialog by rememberSaveable { mutableStateOf(false) }
+    var showGenericErrorDialog by rememberSaveable { mutableStateOf(false) }
 
 
     //-----------------   Events   -----------------//
@@ -113,11 +114,16 @@ fun AuthScreen(
     val onSignIn: () -> Unit = {
         // Launch as coroutine in IO to avoid blocking Main(UI) thread
         coroutineScope.launch(Dispatchers.IO) {
-            // Check if user has been correctly created
-            val username = authViewModel.checkSignIn()
-            if (username != null) {
-                onSuccessfulSignIn(username)
-            } else showSignInErrorDialog = authViewModel.signInUserExists
+            try {
+                // Check if user has been correctly created
+                val username = authViewModel.checkSignIn()
+                if (username != null) {
+                    onSuccessfulSignIn(username)
+                } else showSignInErrorDialog = authViewModel.signInUserExists
+            } catch (e: Exception) {
+                e.printStackTrace()
+                showGenericErrorDialog = true
+            }
         }
     }
 
@@ -126,11 +132,18 @@ fun AuthScreen(
     val onLogin: () -> Unit = {
         // Launch as coroutine in IO to avoid blocking Main(UI) thread
         coroutineScope.launch(Dispatchers.IO) {
-            // Check if login has been successful
-            val username = authViewModel.checkLogin()
-            if (username != null) {
-                onSuccessfulLogin(username)
-            } else showLoginErrorDialog = !authViewModel.isLoginCorrect
+            try {
+
+                // Check if login has been successful
+                val username = authViewModel.checkLogin()
+                if (username != null) {
+                    onSuccessfulLogin(username)
+                } else showLoginErrorDialog = !authViewModel.isLoginCorrect
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                showGenericErrorDialog = true
+            }
         }
     }
 
@@ -140,10 +153,10 @@ fun AuthScreen(
         biometricSupport = biometricSupportChecker()
         when {
             // If there's not been a previous logged user show error dialog
-            authViewModel.lastLoggedUser == null -> showBiometricErrorDialogState = true
+            authViewModel.lastLoggedUser == null -> showBiometricErrorDialog = true
 
             // If device supports biometrics but are not configured show enrollment dialog
-            biometricSupport == DeviceBiometricsSupport.NOT_CONFIGURED -> showBiometricEnrollDialogState = true
+            biometricSupport == DeviceBiometricsSupport.NOT_CONFIGURED -> showBiometricEnrollDialog = true
 
             // Else if it is supported, ask for biometrics authorization
             biometricSupport != DeviceBiometricsSupport.UNSUPPORTED -> onBiometricAuthRequested()
@@ -159,6 +172,20 @@ fun AuthScreen(
     /*------------------------------------------------
     |                    Dialogs                     |
     ------------------------------------------------*/
+
+    //----------   Generic Error Dialog   ----------//
+    if (showGenericErrorDialog) {
+        AlertDialog(
+            text = { Text(text = stringResource(R.string.server_error_dialog_title)) },
+            onDismissRequest = { showGenericErrorDialog = false },
+            confirmButton = {
+                TextButton(onClick = { showGenericErrorDialog = false }, shape = getButtonShape()) {
+                    Text(text = stringResource(id = R.string.ok_button))
+                }
+            },
+            shape = RectangleShape
+        )
+    }
 
     //----------   Sign In Error Dialog   ----------//
     if (showSignInErrorDialog) {
@@ -189,7 +216,7 @@ fun AuthScreen(
     }
 
     //---   Biometric Login User Error Dialog   ----//
-    if (showBiometricErrorDialogState) {
+    if (showBiometricErrorDialog) {
         AlertDialog(
             shape = RectangleShape,
             title = { Text(text = stringResource(R.string.invalid_account_login_dialog_title), style = MaterialTheme.typography.h6) },
@@ -198,9 +225,9 @@ fun AuthScreen(
                     text = stringResource(R.string.invalid_account_login_dialog_text),
                 )
             },
-            onDismissRequest = { showBiometricErrorDialogState = false },
+            onDismissRequest = { showBiometricErrorDialog = false },
             confirmButton = {
-                TextButton(onClick = { showBiometricErrorDialogState = false }, shape = getButtonShape()) {
+                TextButton(onClick = { showBiometricErrorDialog = false }, shape = getButtonShape()) {
                     Text(text = stringResource(R.string.ok_button))
                 }
             }
@@ -208,7 +235,7 @@ fun AuthScreen(
     }
 
     //-------   Biometric's Enroll Dialog   --------//
-    if (showBiometricEnrollDialogState) {
+    if (showBiometricEnrollDialog) {
         AlertDialog(
             shape = RectangleShape,
             title = { Text(text = stringResource(R.string.no_biometrics_enrolled_dialog_title)) },
@@ -220,20 +247,20 @@ fun AuthScreen(
                     }
                 }
             },
-            onDismissRequest = { showBiometricEnrollDialogState = false },
+            onDismissRequest = { showBiometricEnrollDialog = false },
 
             // If the user agrees, take them to settings in order to configure biometric authentication
             confirmButton = {
                 TextButton(
                     shape = getButtonShape(),
                     onClick = {
-                        showBiometricEnrollDialogState = false
+                        showBiometricEnrollDialog = false
                         BiometricAuthManager.makeBiometricEnroll(context)
                     }
                 ) { Text(text = stringResource(R.string.enroll_button)) }
             },
             dismissButton = {
-                TextButton(onClick = { showBiometricEnrollDialogState = false },
+                TextButton(onClick = { showBiometricEnrollDialog = false },
                     shape = getButtonShape()) { Text(text = stringResource(R.string.cancel_button)) }
             }
         )

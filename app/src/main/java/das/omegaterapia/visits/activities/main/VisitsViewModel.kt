@@ -33,16 +33,19 @@ class VisitsViewModel @Inject constructor(
 
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
+
     /*
     // Data generator code to populate original database (right now it has no purpose)
-
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val user = savedStateHandle.get("LOGGED_USERNAME") as? String ?: ""
-            visitsRepository.addVisitCards(visitList.map { it.user = user; it.visitData.mainClientPhone = it.client.phoneNum; return@map it })
+            val visitCards = visitList.map { it.user = user; it.visitData.mainClientPhone = it.client.phoneNum; return@map it }
+            Log.d("DATABASE", visitCards.map { it.id }.toString())
+            Log.d("DATABASE", Json.encodeToString(visitsRepository.addVisitCards(visitCards)))
         }
     }
     */
+
 
     /*************************************************
      **                    States                   **

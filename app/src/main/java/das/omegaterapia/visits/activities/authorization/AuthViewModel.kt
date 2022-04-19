@@ -8,8 +8,6 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import das.omegaterapia.visits.model.entities.AuthUser
 import das.omegaterapia.visits.model.repositories.ILoginRepository
-import das.omegaterapia.visits.utils.compareHash
-import das.omegaterapia.visits.utils.hash
 import das.omegaterapia.visits.utils.isValidPassword
 import das.omegaterapia.visits.utils.isValidUsername
 import kotlinx.coroutines.runBlocking
@@ -37,12 +35,6 @@ class AuthViewModel @Inject constructor(private val loginRepository: ILoginRepos
     // Property that has the last logged user (if it exists else null)
     val lastLoggedUser: String?
         get() = runBlocking { return@runBlocking loginRepository.getLastLoggedUser() } // Get last logged user synchronously
-            .let {
-                // Check if there's a previus logged user and if that user still exist (if not returns null)
-                if (it != null && runBlocking { return@runBlocking loginRepository.getUserPassword(it) } != null) {
-                    it
-                } else null
-            }
 
     // Current Screen (login/sign in) to show
     var isLogin: Boolean by mutableStateOf(true)
@@ -86,7 +78,7 @@ class AuthViewModel @Inject constructor(private val loginRepository: ILoginRepos
      */
     suspend fun checkLogin(): String? {
         val username = loginUsername
-        isLoginCorrect = loginPassword.compareHash(loginRepository.getUserPassword(username))
+        isLoginCorrect = loginRepository.authenticateUser(AuthUser(loginUsername, loginPassword))
         return if (isLoginCorrect) username else null
     }
 
@@ -108,7 +100,7 @@ class AuthViewModel @Inject constructor(private val loginRepository: ILoginRepos
      */
     suspend fun checkSignIn(): String? {
         if (isSignInUsernameValid && isSignInPasswordConfirmationValid) {
-            val newUser = AuthUser(signInUsername, signInPassword.hash())
+            val newUser = AuthUser(signInUsername, signInPassword)
             val signInCorrect = loginRepository.createUser(newUser)
             signInUserExists = !signInCorrect
             return if (signInCorrect) newUser.username else null

@@ -1,9 +1,10 @@
 package das.omegaterapia.visits.model.repositories
 
-import android.database.sqlite.SQLiteConstraintException
-import das.omegaterapia.visits.model.dao.AuthenticationDao
 import das.omegaterapia.visits.model.entities.AuthUser
 import das.omegaterapia.visits.preferences.ILoginSettings
+import das.omegaterapia.visits.utils.AuthenticationClient
+import das.omegaterapia.visits.utils.AuthenticationException
+import das.omegaterapia.visits.utils.UserExistsException
 import javax.inject.Inject
 
 
@@ -12,25 +13,25 @@ import javax.inject.Inject
  * It inherits from a [ILoginSettings].
  */
 interface ILoginRepository : ILoginSettings {
-    suspend fun getUserPassword(username: String): String?
     suspend fun createUser(authUser: AuthUser): Boolean
+    suspend fun authenticateUser(authUser: AuthUser): Boolean
 }
 
 
 /**
- * Implementation of a ILoginRepository.
+ * Implementation of a [ILoginRepository].
  *
  * It has all the utility required to manage authorizations
- * and unifies required access to room database and DataStore Preferences
+ * and unifies required access to api server and DataStore Preferences
  * in a single Repository (following the Repository design pattern).
  *
  * Required constructor parameters are injected by Hilt
  *
- * @property authDao DAO object that provides an API to access Room Database
+ * @property authenticationClient Client to authorize and create users
  * @property loginSettings Object that provides an API to access DataStore Preferences
  */
 class LoginRepository @Inject constructor(
-    private val authDao: AuthenticationDao,
+    private val authenticationClient: AuthenticationClient,
     private val loginSettings: ILoginSettings,
 ) : ILoginRepository {
 
@@ -46,16 +47,21 @@ class LoginRepository @Inject constructor(
     ------------------------------------------------*/
 
     /**
-     * Given a [username] tries to fetch the user's password.
-     * If the user doesn't exist the methods returns null.
+     * Given a [authUser] tries to authenticate its credentials.
+     * Returns True on success and False otherwise.
+     *
+     * In case of an unexpected error, throws an exception
      */
-    override suspend fun getUserPassword(username: String): String? {
+    @Throws(Exception::class)
+    override suspend fun authenticateUser(authUser: AuthUser): Boolean {
         return try {
-            authDao.getUserPassword(username)
-        } catch (e: SQLiteConstraintException) {
-            null
+            authenticationClient.authenticate(authUser)
+            true
+        } catch (e: AuthenticationException) {
+            false
         }
     }
+
 
     /**
      * Given an [AuthUser] tries to add the defined user to the database.
@@ -63,9 +69,9 @@ class LoginRepository @Inject constructor(
      */
     override suspend fun createUser(authUser: AuthUser): Boolean {
         return try {
-            authDao.createUser(authUser)
+            authenticationClient.createUser(authUser)
             true
-        } catch (e: SQLiteConstraintException) {
+        } catch (e: UserExistsException) {
             false
         }
     }

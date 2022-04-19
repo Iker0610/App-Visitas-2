@@ -94,4 +94,5 @@
     <string name="app_exit_dialog_text">¿Está seguro de que quiere cerrar la aplicación?</string>
     <string name="close_navigation_drawer_button_description">Cerrar menú de navegación</string>
     <string name="top_app_bar_back_button_description">Cerrar ventana</string>
+    <string name="server_error_dialog_title">Ha ocurrido un error inesperado. Inténtelo más tarde.</string>
 </resources>

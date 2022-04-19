@@ -40,10 +40,12 @@ data class VisitId(val id: String)
  * @property isVIP If the visit is to a previous client
  */
 @Entity(
-    // Entity's foreign keys to [AuthUser] and [Client]
+    // Entity's foreign keys to [Client]
     foreignKeys = [
-        ForeignKey(entity = AuthUser::class, parentColumns = ["username"], childColumns = ["user"], onDelete = ForeignKey.CASCADE),
-        ForeignKey(entity = Client::class, parentColumns = ["phone_number"], childColumns = ["main_client_phone"], onDelete = ForeignKey.CASCADE)
+        ForeignKey(entity = Client::class,
+            parentColumns = ["phone_number"],
+            childColumns = ["main_client_phone"],
+            onDelete = ForeignKey.CASCADE)
     ],
 
     // Indexes for faster queries

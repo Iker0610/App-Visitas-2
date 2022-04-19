@@ -93,4 +93,5 @@
     <string name="app_exit_dialog_text">Are you sure you want to exit?</string>
     <string name="close_navigation_drawer_button_description">Close navigation drawer.</string>
     <string name="top_app_bar_back_button_description">Close screen</string>
+    <string name="server_error_dialog_title">An unexpected error occurred. Try later.</string>
 </resources>

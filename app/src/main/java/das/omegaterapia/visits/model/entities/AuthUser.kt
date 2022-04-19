@@ -1,8 +1,6 @@
 package das.omegaterapia.visits.model.entities
 
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import kotlinx.serialization.Serializable
 
 
 /*******************************************************************************
@@ -10,11 +8,10 @@ import androidx.room.PrimaryKey
  *******************************************************************************/
 
 /**
- * Data class representing the user entity. Defined by a [username] and a [hashedPassword].
- * [hashedPassword] must be given already hashed.
+ * Data class representing the user entity. Defined by a [username] and a [password].
  */
-@Entity(tableName = "User")
+@Serializable
 data class AuthUser(
-    @PrimaryKey val username: String,
-    @ColumnInfo(name = "hashed_password") val hashedPassword: String,
+    val username: String,
+    val password: String = "",
 )
