@@ -31,9 +31,10 @@ import das.omegaterapia.visits.ui.theme.OmegaterapiaTheme
 import das.omegaterapia.visits.utils.APIClient
 import das.omegaterapia.visits.utils.BiometricAuthManager
 import das.omegaterapia.visits.utils.rememberWindowSizeClass
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 
@@ -162,12 +163,14 @@ class AuthActivity : FragmentActivity() {
      *
      * @param user Logged in user's username
      */
+    @OptIn(DelicateCoroutinesApi::class)
     private fun onSuccessfulLogin(user: AuthUser) {
         // Set the last logged user
         authViewModel.updateLastLoggedUsername(user)
 
         // Subscribe user
         subscribeUser()
+
 
         // Open the main activity
         val intent = Intent(this, MainActivity::class.java).apply {
@@ -180,22 +183,26 @@ class AuthActivity : FragmentActivity() {
     /**
      * Deletes the current FCM token and creates a new one. Then subscribes the user to the next topics: All and its username's topic
      */
+    @OptIn(DelicateCoroutinesApi::class)
     private fun subscribeUser() {
         // Get FCM
         val fcm = FirebaseMessaging.getInstance()
+        Log.d("FCM", "DCM obtained")
 
         // Delete previous token
         fcm.deleteToken().addOnSuccessListener {
             // Get a new token and subscribe the user
+            Log.d("FCM", "Token deleted")
             fcm.token.addOnCompleteListener(OnCompleteListener { task ->
                 if (!task.isSuccessful) {
-                    Log.w("FCM", "Fetching FCM registration token failed", task.exception)
+                    Log.d("FCM", "Fetching FCM registration token failed", task.exception)
                     return@OnCompleteListener
                 }
 
-                runBlocking {
-                    Log.w("FCM", "New Token ${task.result}")
+                GlobalScope.launch(Dispatchers.IO) {
+                    Log.d("FCM", "New Token ${task.result}")
                     httpClient.subscribeUser(task.result)
+                    Log.d("FCM", "User subscribed")
                 }
             })
         }
