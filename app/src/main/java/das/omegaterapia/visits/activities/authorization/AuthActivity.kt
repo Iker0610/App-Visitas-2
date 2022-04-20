@@ -3,6 +3,7 @@ package das.omegaterapia.visits.activities.authorization
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -16,7 +17,10 @@ import androidx.lifecycle.lifecycleScope
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
+import das.omegaterapia.visits.NotificationChannelID
 import das.omegaterapia.visits.NotificationID
 import das.omegaterapia.visits.R
 import das.omegaterapia.visits.activities.authorization.screens.AnimatedSplashScreen
@@ -24,10 +28,13 @@ import das.omegaterapia.visits.activities.authorization.screens.AuthScreen
 import das.omegaterapia.visits.activities.main.MainActivity
 import das.omegaterapia.visits.model.entities.AuthUser
 import das.omegaterapia.visits.ui.theme.OmegaterapiaTheme
+import das.omegaterapia.visits.utils.APIClient
 import das.omegaterapia.visits.utils.BiometricAuthManager
 import das.omegaterapia.visits.utils.rememberWindowSizeClass
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import javax.inject.Inject
 
 
 /*******************************************************************************
@@ -46,7 +53,8 @@ class AuthActivity : FragmentActivity() {
     /*************************************************
      **     ViewModels and other manager classes    **
      *************************************************/
-
+    @Inject
+    lateinit var httpClient: APIClient
     private val authViewModel: AuthViewModel by viewModels()
     private lateinit var biometricAuthManager: BiometricAuthManager
 
@@ -68,6 +76,7 @@ class AuthActivity : FragmentActivity() {
                         lifecycleScope.launch(Dispatchers.IO) {
                             val loggedUser = authViewModel.checkBiometricLogin()
                             if (loggedUser != null) onSuccessfulLogin(loggedUser)
+                            else authViewModel.backgroundBlockingTaskOnCourse = false
                         }
                     }
                 )
@@ -133,7 +142,7 @@ class AuthActivity : FragmentActivity() {
     private fun onSuccessfulSignIn(user: AuthUser) {
 
         // Show user created notification
-        val builder = NotificationCompat.Builder(this, "AUTH_CHANNEL")
+        val builder = NotificationCompat.Builder(this, NotificationChannelID.AUTH_CHANNEL.name)
             .setSmallIcon(R.drawable.ic_stat_name)
             .setContentTitle(getString(R.string.user_created_dialog_title))
             .setContentText(getString(R.string.user_created_dialog_text, user.username))
@@ -157,11 +166,38 @@ class AuthActivity : FragmentActivity() {
         // Set the last logged user
         authViewModel.updateLastLoggedUsername(user)
 
+        // Subscribe user
+        subscribeUser()
+
         // Open the main activity
         val intent = Intent(this, MainActivity::class.java).apply {
             putExtra("LOGGED_USERNAME", user.username)
         }
         startActivity(intent)
         finish()
+    }
+
+    /**
+     * Deletes the current FCM token and creates a new one. Then subscribes the user to the next topics: All and its username's topic
+     */
+    private fun subscribeUser() {
+        // Get FCM
+        val fcm = FirebaseMessaging.getInstance()
+
+        // Delete previous token
+        fcm.deleteToken().addOnSuccessListener {
+            // Get a new token and subscribe the user
+            fcm.token.addOnCompleteListener(OnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    Log.w("FCM", "Fetching FCM registration token failed", task.exception)
+                    return@OnCompleteListener
+                }
+
+                runBlocking {
+                    Log.w("FCM", "New Token ${task.result}")
+                    httpClient.subscribeUser(task.result)
+                }
+            })
+        }
     }
 }

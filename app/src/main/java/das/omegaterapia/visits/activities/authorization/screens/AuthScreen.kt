@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -20,6 +21,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Card
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
 import androidx.compose.material.LocalTextStyle
 import androidx.compose.material.MaterialTheme
@@ -122,9 +124,13 @@ fun AuthScreen(
                 val user = authViewModel.checkSignIn()
                 if (user != null) {
                     onSuccessfulSignIn(user)
-                } else showSignInErrorDialog = authViewModel.signInUserExists
+                } else {
+                    showSignInErrorDialog = authViewModel.signInUserExists
+                    authViewModel.backgroundBlockingTaskOnCourse = false
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
+                authViewModel.backgroundBlockingTaskOnCourse = false
                 showGenericErrorDialog = true
             }
         }
@@ -140,7 +146,10 @@ fun AuthScreen(
                 val user = authViewModel.checkUserPasswordLogin()
                 if (user != null) {
                     onSuccessfulLogin(user)
-                } else showLoginErrorDialog = !authViewModel.isLoginCorrect
+                } else {
+                    showLoginErrorDialog = !authViewModel.isLoginCorrect
+                    authViewModel.backgroundBlockingTaskOnCourse = false
+                }
 
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -162,7 +171,7 @@ fun AuthScreen(
             biometricSupport == DeviceBiometricsSupport.NOT_CONFIGURED -> showBiometricEnrollDialog = true
 
             // Else if it is supported, ask for biometrics authorization
-            biometricSupport != DeviceBiometricsSupport.UNSUPPORTED -> onBiometricAuthRequested()
+            biometricSupport != DeviceBiometricsSupport.UNSUPPORTED && authViewModel.biometricAuthenticationStatus == BiometricAuthenticationStatus.NOT_AUTHENTICATED_YET -> onBiometricAuthRequested()
         }
     }
 
@@ -188,6 +197,22 @@ fun AuthScreen(
     /*------------------------------------------------
     |                    Dialogs                     |
     ------------------------------------------------*/
+
+    if (authViewModel.backgroundBlockingTaskOnCourse) {
+        AlertDialog(
+            onDismissRequest = {},
+            buttons = {},
+            title = { CenteredColumn(modifier = Modifier.fillMaxWidth()) { Text(text = stringResource(id = R.string.processing)) } },
+            text = {
+                CenteredColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(64.dp)
+                ) { CircularProgressIndicator() }
+            },
+            shape = RectangleShape
+        )
+    }
 
     //----------   Generic Error Dialog   ----------//
     if (showGenericErrorDialog) {

@@ -98,4 +98,7 @@
     <string name="saved_credentials_not_longer_valid_dialog_title">Las credenciales guardadas no son válidas</string>
     <string name="saved_credentials_not_longer_valid_dialog_text">Las credenciales del usuario anterior no son actualmente válidas. Esto puede deberse a que el usuario ya no existe o a un cambio de contraseña.</string>
     <string name="saved_credentials_not_longer_valid_dialog_solution_text">Para continuar vuelve a iniciar sesión con el nombre de usuario y la ocntraseña.</string>
+    <string name="processing">Procesando</string>
+    <string name="corporation_channel_name">Canal de Omegaterapia</string>
+    <string name="corporation_channel_description">Canal de notificaciones para los empleados de Omegaterapia.</string>
 </resources>

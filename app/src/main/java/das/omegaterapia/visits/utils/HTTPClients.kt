@@ -115,6 +115,12 @@ class APIClient @Inject constructor() {
         }
     }
 
+    suspend fun subscribeUser(FCMClientToken: String) {
+        httpClient.post("https://api.omegaterapia.das.ranap.eus/notifications/subscribe") {
+            contentType(ContentType.Application.Json)
+            setBody(mapOf("fcm_client_token" to FCMClientToken))
+        }
+    }
 
     suspend fun getUserProfile() {
         TODO("Por Implementar")

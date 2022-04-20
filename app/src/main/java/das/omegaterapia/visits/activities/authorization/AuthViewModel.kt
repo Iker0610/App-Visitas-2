@@ -48,6 +48,7 @@ enum class BiometricAuthenticationStatus {
 @HiltViewModel
 class AuthViewModel @Inject constructor(private val loginRepository: ILoginRepository) : ViewModel() {
 
+
     /*************************************************
      **                    States                   **
      *************************************************/
@@ -58,6 +59,7 @@ class AuthViewModel @Inject constructor(private val loginRepository: ILoginRepos
 
     // Biometric authentication state
     var biometricAuthenticationStatus: BiometricAuthenticationStatus by mutableStateOf(if (lastLoggedUser != null) NOT_AUTHENTICATED_YET else NO_CREDENTIALS)
+
 
     // Current Screen (login/sign in) to show
     var isLogin: Boolean by mutableStateOf(true)
@@ -82,6 +84,9 @@ class AuthViewModel @Inject constructor(private val loginRepository: ILoginRepos
     var signInUserExists by mutableStateOf(false)
 
 
+    // Property that defines if a background task that must block the UI is on course
+    var backgroundBlockingTaskOnCourse: Boolean by mutableStateOf(false)
+
     /*************************************************
      **                    Events                   **
      *************************************************/
@@ -97,6 +102,8 @@ class AuthViewModel @Inject constructor(private val loginRepository: ILoginRepos
      * Logged [AuthUser] if everything is correct or null otherwise.
      */
     suspend fun checkBiometricLogin(): AuthUser? {
+        backgroundBlockingTaskOnCourse = true
+
         if (biometricAuthenticationStatus != NO_CREDENTIALS) {
             biometricAuthenticationStatus =
                 try {
@@ -117,6 +124,8 @@ class AuthViewModel @Inject constructor(private val loginRepository: ILoginRepos
      */
     @Throws(Exception::class)
     suspend fun checkUserPasswordLogin(): AuthUser? {
+        backgroundBlockingTaskOnCourse = true
+
         val user = AuthUser(loginUsername, loginPassword)
         isLoginCorrect = loginRepository.authenticateUser(user)
         return if (isLoginCorrect) user else null
@@ -140,6 +149,8 @@ class AuthViewModel @Inject constructor(private val loginRepository: ILoginRepos
      * @return Created [AuthUser] if everything went right, null otherwise
      */
     suspend fun checkSignIn(): AuthUser? {
+        backgroundBlockingTaskOnCourse = true
+
         if (isSignInUsernameValid && isSignInPasswordConfirmationValid) {
             val newUser = AuthUser(signInUsername, signInPassword)
             val signInCorrect = loginRepository.createUser(newUser)

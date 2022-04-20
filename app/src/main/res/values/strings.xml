@@ -97,4 +97,7 @@
     <string name="saved_credentials_not_longer_valid_dialog_title">Saved credentials are not valid</string>
     <string name="saved_credentials_not_longer_valid_dialog_text">The previus logged user\'s credentials are not longer valid. This may be because the user does not longer exist or due to a password change.</string>
     <string name="saved_credentials_not_longer_valid_dialog_solution_text">In order to continue you must logging again with the username and password.</string>
+    <string name="processing">Processing</string>
+    <string name="corporation_channel_name">Omegaterapia Channel</string>
+    <string name="corporation_channel_description">Notification channel for Omegaterapia employees.</string>
 </resources>
