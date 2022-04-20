@@ -6,12 +6,32 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import das.omegaterapia.visits.activities.authorization.BiometricAuthenticationStatus.*
 import das.omegaterapia.visits.model.entities.AuthUser
 import das.omegaterapia.visits.model.repositories.ILoginRepository
 import das.omegaterapia.visits.utils.isValidPassword
 import das.omegaterapia.visits.utils.isValidUsername
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
+
+
+/**
+ * Enum class representing possible biometric authentication status.
+ *
+ * [AUTHENTICATED] - Authentication has been Successful
+ * [NO_CREDENTIALS] - There are no credentials
+ * [CREDENTIALS_ERROR] - Credentials are not valid
+ * [ERROR] - Another error has occurred and authentication has not been possible
+ * [NOT_AUTHENTICATED_YET] - Neutral state
+ */
+enum class BiometricAuthenticationStatus {
+    AUTHENTICATED,
+    NO_CREDENTIALS,
+    CREDENTIALS_ERROR,
+    ERROR,
+    NOT_AUTHENTICATED_YET
+
+}
 
 
 /*******************************************************************************
@@ -33,19 +53,20 @@ class AuthViewModel @Inject constructor(private val loginRepository: ILoginRepos
      *************************************************/
 
     // Property that has the last logged user (if it exists else null)
-    val lastLoggedUser: String?
-        get() = runBlocking { return@runBlocking loginRepository.getLastLoggedUser() } // Get last logged user synchronously
+    val lastLoggedUser: AuthUser? = runBlocking { return@runBlocking loginRepository.getLastLoggedUser() } // Get last logged user synchronously
+
+
+    // Biometric authentication state
+    var biometricAuthenticationStatus: BiometricAuthenticationStatus by mutableStateOf(if (lastLoggedUser != null) NOT_AUTHENTICATED_YET else NO_CREDENTIALS)
 
     // Current Screen (login/sign in) to show
     var isLogin: Boolean by mutableStateOf(true)
         private set
 
-
-    // Login States
     var isLoginCorrect by mutableStateOf(true)
         private set
 
-    var loginUsername by mutableStateOf(lastLoggedUser ?: "")
+    var loginUsername by mutableStateOf(lastLoggedUser?.username ?: "")
     var loginPassword by mutableStateOf("")
 
 
@@ -72,19 +93,39 @@ class AuthViewModel @Inject constructor(private val loginRepository: ILoginRepos
     //--------------   Login Events   --------------//
 
     /**
-     * Checks if the user defined with [loginUsername] and [loginPassword] exists and it's correct.
-     *
-     * @return Logged user's username if everything is correct or null otherwise.
+     * Checks credentials of [lastLoggedUser] and updates [biometricAuthenticationStatus] depending on the result.
+     * Logged [AuthUser] if everything is correct or null otherwise.
      */
-    suspend fun checkLogin(): String? {
-        val username = loginUsername
-        isLoginCorrect = loginRepository.authenticateUser(AuthUser(loginUsername, loginPassword))
-        return if (isLoginCorrect) username else null
+    suspend fun checkBiometricLogin(): AuthUser? {
+        if (biometricAuthenticationStatus != NO_CREDENTIALS) {
+            biometricAuthenticationStatus =
+                try {
+                    if (loginRepository.authenticateUser(lastLoggedUser!!)) AUTHENTICATED else CREDENTIALS_ERROR
+                } catch (e: Exception) {
+                    ERROR
+                }
+        }
+        return if (biometricAuthenticationStatus == AUTHENTICATED) lastLoggedUser else null
     }
 
+
+    /**
+     * Checks if the user defined with [loginUsername] and [loginPassword] exists and it's correct.
+     *
+     * @return Logged [AuthUser] if everything is correct or null otherwise.
+     * @throws Exception if a non credential error occurs
+     */
+    @Throws(Exception::class)
+    suspend fun checkUserPasswordLogin(): AuthUser? {
+        val user = AuthUser(loginUsername, loginPassword)
+        isLoginCorrect = loginRepository.authenticateUser(user)
+        return if (isLoginCorrect) user else null
+    }
+
+
     // Update las logged username
-    fun updateLastLoggedUsername(username: String) = runBlocking {
-        loginRepository.setLastLoggedUser(username)
+    fun updateLastLoggedUsername(user: AuthUser) = runBlocking {
+        loginRepository.setLastLoggedUser(user)
     }
 
 
@@ -96,14 +137,14 @@ class AuthViewModel @Inject constructor(private val loginRepository: ILoginRepos
      * Checks if [signInUsername] and both passwords are correct.
      * If [signInUsername] doesn't exist the method created the user in the [loginRepository].
      *
-     * @return Created user's username if everything went right, null otherwise
+     * @return Created [AuthUser] if everything went right, null otherwise
      */
-    suspend fun checkSignIn(): String? {
+    suspend fun checkSignIn(): AuthUser? {
         if (isSignInUsernameValid && isSignInPasswordConfirmationValid) {
             val newUser = AuthUser(signInUsername, signInPassword)
             val signInCorrect = loginRepository.createUser(newUser)
             signInUserExists = !signInCorrect
-            return if (signInCorrect) newUser.username else null
+            return if (signInCorrect) newUser else null
         }
         return null
     }

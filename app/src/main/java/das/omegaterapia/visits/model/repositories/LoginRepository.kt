@@ -38,8 +38,8 @@ class LoginRepository @Inject constructor(
     /*------------------------------------------------
     |           DataStore Related Methods            |
     ------------------------------------------------*/
-    override suspend fun getLastLoggedUser(): String? = loginSettings.getLastLoggedUser()
-    override suspend fun setLastLoggedUser(username: String) = loginSettings.setLastLoggedUser(username)
+    override suspend fun getLastLoggedUser(): AuthUser? = loginSettings.getLastLoggedUser()
+    override suspend fun setLastLoggedUser(user: AuthUser) = loginSettings.setLastLoggedUser(user)
 
 
     /*------------------------------------------------

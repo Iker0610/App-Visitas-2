@@ -12,6 +12,7 @@ import androidx.compose.animation.fadeOut
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
@@ -21,9 +22,12 @@ import das.omegaterapia.visits.R
 import das.omegaterapia.visits.activities.authorization.screens.AnimatedSplashScreen
 import das.omegaterapia.visits.activities.authorization.screens.AuthScreen
 import das.omegaterapia.visits.activities.main.MainActivity
+import das.omegaterapia.visits.model.entities.AuthUser
 import das.omegaterapia.visits.ui.theme.OmegaterapiaTheme
 import das.omegaterapia.visits.utils.BiometricAuthManager
 import das.omegaterapia.visits.utils.rememberWindowSizeClass
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 
 /*******************************************************************************
@@ -59,8 +63,13 @@ class AuthActivity : FragmentActivity() {
             biometricAuthManager =
                 BiometricAuthManager(
                     context = this,
-                    authUser = authViewModel.lastLoggedUser ?: "",
-                    onAuthenticationSucceeded = this::onSuccessfulLogin
+                    authUsername = authViewModel.lastLoggedUser?.username ?: "",
+                    onAuthenticationSucceeded = {
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            val loggedUser = authViewModel.checkBiometricLogin()
+                            if (loggedUser != null) onSuccessfulLogin(loggedUser)
+                        }
+                    }
                 )
         }
 
@@ -119,15 +128,15 @@ class AuthActivity : FragmentActivity() {
      * If the username has Signed In successfully, launch a local notification
      * and automatically login the new user.
      *
-     * @param username Signed in username
+     * @param user Signed in username
      */
-    private fun onSuccessfulSignIn(username: String) {
+    private fun onSuccessfulSignIn(user: AuthUser) {
 
         // Show user created notification
         val builder = NotificationCompat.Builder(this, "AUTH_CHANNEL")
             .setSmallIcon(R.drawable.ic_stat_name)
             .setContentTitle(getString(R.string.user_created_dialog_title))
-            .setContentText(getString(R.string.user_created_dialog_text, username))
+            .setContentText(getString(R.string.user_created_dialog_text, user.username))
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
 
@@ -136,21 +145,21 @@ class AuthActivity : FragmentActivity() {
         }
 
         // Log the new user
-        onSuccessfulLogin(username)
+        onSuccessfulLogin(user)
     }
 
     /**
      * It updates the last logged user on the Datastore and launches the Main Activity
      *
-     * @param username Logged in user's username
+     * @param user Logged in user's username
      */
-    private fun onSuccessfulLogin(username: String) {
+    private fun onSuccessfulLogin(user: AuthUser) {
         // Set the last logged user
-        authViewModel.updateLastLoggedUsername(username)
+        authViewModel.updateLastLoggedUsername(user)
 
         // Open the main activity
         val intent = Intent(this, MainActivity::class.java).apply {
-            putExtra("LOGGED_USERNAME", username)
+            putExtra("LOGGED_USERNAME", user.username)
         }
         startActivity(intent)
         finish()

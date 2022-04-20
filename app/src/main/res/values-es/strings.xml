@@ -95,4 +95,7 @@
     <string name="close_navigation_drawer_button_description">Cerrar menú de navegación</string>
     <string name="top_app_bar_back_button_description">Cerrar ventana</string>
     <string name="server_error_dialog_title">Ha ocurrido un error inesperado. Inténtelo más tarde.</string>
+    <string name="saved_credentials_not_longer_valid_dialog_title">Las credenciales guardadas no son válidas</string>
+    <string name="saved_credentials_not_longer_valid_dialog_text">Las credenciales del usuario anterior no son actualmente válidas. Esto puede deberse a que el usuario ya no existe o a un cambio de contraseña.</string>
+    <string name="saved_credentials_not_longer_valid_dialog_solution_text">Para continuar vuelve a iniciar sesión con el nombre de usuario y la ocntraseña.</string>
 </resources>

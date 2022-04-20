@@ -43,10 +43,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import das.omegaterapia.visits.R
 import das.omegaterapia.visits.activities.authorization.AuthViewModel
+import das.omegaterapia.visits.activities.authorization.BiometricAuthenticationStatus
 import das.omegaterapia.visits.activities.authorization.composables.LoginCard
 import das.omegaterapia.visits.activities.authorization.composables.LoginSection
 import das.omegaterapia.visits.activities.authorization.composables.SignInCard
 import das.omegaterapia.visits.activities.authorization.composables.SignInSection
+import das.omegaterapia.visits.model.entities.AuthUser
 import das.omegaterapia.visits.ui.components.generic.CenteredColumn
 import das.omegaterapia.visits.ui.components.generic.CenteredRow
 import das.omegaterapia.visits.ui.theme.OmegaterapiaTheme
@@ -74,18 +76,18 @@ import kotlinx.coroutines.launch
  *
  * @param authViewModel [AuthViewModel] that contains required states and event calls.
  * @param windowSizeFormatClass [WindowSize] that contains relevant information in order to adjust layout to available space.
+ * @param onSuccessfulLogin callback for successful login event. Must get as parameter the successfully logged [AuthUser].
+ * @param onSuccessfulSignIn callback for successful sign in event. Must get as parameter the successfully signed in [AuthUser].
  * @param biometricSupportChecker callback that returns device's biometrics' capabilities.
- * @param onSuccessfulLogin callback for successful login event. Must get as parameter the successfully logged username.
- * @param onSuccessfulSignIn callback for successful sign in event. Must get as parameter the successfully signed in username.
- * @param onBiometricAuthRequested callback for successful login with biometrics event. Must get as parameter the successfully logged username.
+ * @param onBiometricAuthRequested callback for authentication with biometrics request
  */
 @Composable
 fun AuthScreen(
     authViewModel: AuthViewModel = viewModel(),
     windowSizeFormatClass: WindowSize,
+    onSuccessfulLogin: (AuthUser) -> Unit = {},
+    onSuccessfulSignIn: (AuthUser) -> Unit = {},
     biometricSupportChecker: () -> DeviceBiometricsSupport = { DeviceBiometricsSupport.UNSUPPORTED },
-    onSuccessfulLogin: (String) -> Unit = {},
-    onSuccessfulSignIn: (String) -> Unit = {},
     onBiometricAuthRequested: () -> Unit = {},
 ) {
 
@@ -103,7 +105,8 @@ fun AuthScreen(
 
     var showSignInErrorDialog by rememberSaveable { mutableStateOf(false) }
     var showLoginErrorDialog by rememberSaveable { mutableStateOf(false) }
-    var showBiometricErrorDialog by rememberSaveable { mutableStateOf(false) }
+    var showBiometricErrorNotPreviousLoggedUserDialog by rememberSaveable { mutableStateOf(false) }
+    var showBiometricErrorCredentialsNotLongerValidDialog by rememberSaveable { mutableStateOf(false) }
     var showBiometricEnrollDialog by rememberSaveable { mutableStateOf(false) }
     var showGenericErrorDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -116,9 +119,9 @@ fun AuthScreen(
         coroutineScope.launch(Dispatchers.IO) {
             try {
                 // Check if user has been correctly created
-                val username = authViewModel.checkSignIn()
-                if (username != null) {
-                    onSuccessfulSignIn(username)
+                val user = authViewModel.checkSignIn()
+                if (user != null) {
+                    onSuccessfulSignIn(user)
                 } else showSignInErrorDialog = authViewModel.signInUserExists
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -133,11 +136,10 @@ fun AuthScreen(
         // Launch as coroutine in IO to avoid blocking Main(UI) thread
         coroutineScope.launch(Dispatchers.IO) {
             try {
-
                 // Check if login has been successful
-                val username = authViewModel.checkLogin()
-                if (username != null) {
-                    onSuccessfulLogin(username)
+                val user = authViewModel.checkUserPasswordLogin()
+                if (user != null) {
+                    onSuccessfulLogin(user)
                 } else showLoginErrorDialog = !authViewModel.isLoginCorrect
 
             } catch (e: Exception) {
@@ -153,7 +155,8 @@ fun AuthScreen(
         biometricSupport = biometricSupportChecker()
         when {
             // If there's not been a previous logged user show error dialog
-            authViewModel.lastLoggedUser == null -> showBiometricErrorDialog = true
+            authViewModel.biometricAuthenticationStatus == BiometricAuthenticationStatus.NO_CREDENTIALS ->
+                showBiometricErrorNotPreviousLoggedUserDialog = true
 
             // If device supports biometrics but are not configured show enrollment dialog
             biometricSupport == DeviceBiometricsSupport.NOT_CONFIGURED -> showBiometricEnrollDialog = true
@@ -161,6 +164,19 @@ fun AuthScreen(
             // Else if it is supported, ask for biometrics authorization
             biometricSupport != DeviceBiometricsSupport.UNSUPPORTED -> onBiometricAuthRequested()
         }
+    }
+
+    //----   On Biometric Auth Status Change   -----//
+    when (authViewModel.biometricAuthenticationStatus) {
+        BiometricAuthenticationStatus.CREDENTIALS_ERROR -> {
+            showBiometricErrorCredentialsNotLongerValidDialog = true
+            authViewModel.biometricAuthenticationStatus = BiometricAuthenticationStatus.NOT_AUTHENTICATED_YET
+        }
+        BiometricAuthenticationStatus.ERROR -> {
+            showGenericErrorDialog = true
+            authViewModel.biometricAuthenticationStatus = BiometricAuthenticationStatus.NOT_AUTHENTICATED_YET
+        }
+        else -> {}
     }
 
 
@@ -216,7 +232,7 @@ fun AuthScreen(
     }
 
     //---   Biometric Login User Error Dialog   ----//
-    if (showBiometricErrorDialog) {
+    if (showBiometricErrorNotPreviousLoggedUserDialog) {
         AlertDialog(
             shape = RectangleShape,
             title = { Text(text = stringResource(R.string.invalid_account_login_dialog_title), style = MaterialTheme.typography.h6) },
@@ -225,9 +241,34 @@ fun AuthScreen(
                     text = stringResource(R.string.invalid_account_login_dialog_text),
                 )
             },
-            onDismissRequest = { showBiometricErrorDialog = false },
+            onDismissRequest = { showBiometricErrorNotPreviousLoggedUserDialog = false },
             confirmButton = {
-                TextButton(onClick = { showBiometricErrorDialog = false }, shape = getButtonShape()) {
+                TextButton(onClick = { showBiometricErrorNotPreviousLoggedUserDialog = false }, shape = getButtonShape()) {
+                    Text(text = stringResource(R.string.ok_button))
+                }
+            }
+        )
+    }
+
+
+    //---   Credentials Not Valid Error Dialog   ---//
+    if (showBiometricErrorCredentialsNotLongerValidDialog) {
+        AlertDialog(
+            shape = RectangleShape,
+            title = { Text(text = stringResource(R.string.saved_credentials_not_longer_valid_dialog_title), style = MaterialTheme.typography.h6) },
+            text = {
+                Column {
+                    Text(
+                        text = stringResource(R.string.saved_credentials_not_longer_valid_dialog_text),
+                    )
+                    Text(
+                        text = stringResource(R.string.saved_credentials_not_longer_valid_dialog_solution_text),
+                    )
+                }
+            },
+            onDismissRequest = { showBiometricErrorCredentialsNotLongerValidDialog = false },
+            confirmButton = {
+                TextButton(onClick = { showBiometricErrorCredentialsNotLongerValidDialog = false }, shape = getButtonShape()) {
                     Text(text = stringResource(R.string.ok_button))
                 }
             }

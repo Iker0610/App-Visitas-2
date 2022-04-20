@@ -94,4 +94,7 @@
     <string name="close_navigation_drawer_button_description">Close navigation drawer.</string>
     <string name="top_app_bar_back_button_description">Close screen</string>
     <string name="server_error_dialog_title">An unexpected error occurred. Try later.</string>
+    <string name="saved_credentials_not_longer_valid_dialog_title">Saved credentials are not valid</string>
+    <string name="saved_credentials_not_longer_valid_dialog_text">The previus logged user\'s credentials are not longer valid. This may be because the user does not longer exist or due to a password change.</string>
+    <string name="saved_credentials_not_longer_valid_dialog_solution_text">In order to continue you must logging again with the username and password.</string>
 </resources>

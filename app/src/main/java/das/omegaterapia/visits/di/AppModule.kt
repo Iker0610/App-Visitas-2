@@ -16,6 +16,7 @@ import das.omegaterapia.visits.model.repositories.VisitsRepository
 import das.omegaterapia.visits.preferences.ILoginSettings
 import das.omegaterapia.visits.preferences.IUserPreferences
 import das.omegaterapia.visits.preferences.PreferencesRepository
+import das.omegaterapia.visits.utils.AESCipher
 import das.omegaterapia.visits.utils.AuthenticationClient
 import javax.inject.Singleton
 
@@ -45,9 +46,8 @@ object AppModule {
     @Singleton
     @Provides
     fun providesOmegaterapiaVisitsDatabase(@ApplicationContext app: Context) =
-        Room.databaseBuilder(app, OmegaterapiaVisitsDatabase::class.java, "omegaterapia_visits_database")
+        Room.databaseBuilder(app, OmegaterapiaVisitsDatabase::class.java, "omegaterapia_visits_database_2")
             .createFromAsset("database/omegaterapia_visits_database.db")
-            .fallbackToDestructiveMigration()
             .build()
 
     //------------------   DAOs   ------------------//
@@ -75,11 +75,11 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideLoginSettings(@ApplicationContext app: Context): ILoginSettings = PreferencesRepository(app)
+    fun provideLoginSettings(@ApplicationContext app: Context, cipher: AESCipher): ILoginSettings = PreferencesRepository(app, cipher)
 
     @Singleton
     @Provides
-    fun provideUserPreferences(@ApplicationContext app: Context): IUserPreferences = PreferencesRepository(app)
+    fun provideUserPreferences(@ApplicationContext app: Context, cipher: AESCipher): IUserPreferences = PreferencesRepository(app, cipher)
 
 
 }

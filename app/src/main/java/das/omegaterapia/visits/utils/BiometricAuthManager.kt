@@ -50,13 +50,12 @@ enum class DeviceBiometricsSupport {
  * - https://medium.com/androiddevelopers/migrating-from-fingerprintmanager-to-biometricprompt-4bc5f570dccd
  *
  * @property context Activity's Context.
- * @property authUser Last logged user if it exists.
- * @constructor
  *
+ * @param authUsername Name to display on the PrompInfo.
  * @param onAuthenticationSucceeded Callback to invoke when the authentication with biometrics has been successful.
  */
 class BiometricAuthManager(
-    private val context: Context, private val authUser: String, onAuthenticationSucceeded: (String) -> Unit,
+    private val context: Context, authUsername: String, onAuthenticationSucceeded: () -> Unit,
 ) {
 
     /*------------------------------------------------
@@ -72,7 +71,7 @@ class BiometricAuthManager(
             // On authentication succeeded
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                 super.onAuthenticationSucceeded(result)
-                onAuthenticationSucceeded(authUser)
+                onAuthenticationSucceeded()
             }
 
             // On authentication failed
@@ -100,7 +99,7 @@ class BiometricAuthManager(
     // Prompt data showed to the user
     private val biometricPromptInfo: BiometricPrompt.PromptInfo =
         BiometricPrompt.PromptInfo.Builder()
-            .setTitle(context.getString(R.string.biometric_auth_prompt_title, authUser))
+            .setTitle(context.getString(R.string.biometric_auth_prompt_title, authUsername))
             .setSubtitle(context.getString(R.string.biometric_auth_prompt_text))
             .setNegativeButtonText(context.getString(R.string.cancel_button))
             .build()
@@ -157,5 +156,3 @@ class BiometricAuthManager(
         }
     }
 }
-
-

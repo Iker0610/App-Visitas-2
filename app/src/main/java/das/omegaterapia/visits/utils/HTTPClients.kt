@@ -25,7 +25,7 @@ class UserExistsException : Exception()
 
 
 /**
- * Data class que representa el JSON devuelto por la API al solicitar un [accessToken].
+ * Data class that represents server response when an [accessToken] is request.
  */
 @Serializable
 data class TokenInfo(
@@ -37,14 +37,13 @@ data class TokenInfo(
 
 
 /**
- * Lista para almacenar los [BearerTokens] que vayamos recibiendo.
+ * [MutableList] to save retrieves [BearerTokens]
  */
 val bearerTokenStorage = mutableListOf<BearerTokens>()
 
 
 /**
- * Cliente HTTP encargado de hacer las autenticación de usuarios y de obtener los tokens de acceso.
- * También se encarga de realizar la generación de usuarios.
+ * HTTP Client that makes petitions to the API to authenticate, retrieve access token and create users.
  */
 @Singleton
 class AuthenticationClient @Inject constructor() {
@@ -86,6 +85,11 @@ class AuthenticationClient @Inject constructor() {
     }
 }
 
+/**
+ * HTTP Client that makes authenticated petitions to REST API.
+ *
+ * It manages automatic access token refresh.
+ */
 @Singleton
 class APIClient @Inject constructor() {
     private val httpClient = HttpClient(CIO) {
