@@ -1,12 +1,14 @@
 package das.omegaterapia.visits.preferences
 
 import android.content.Context
+import android.graphics.Bitmap
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import das.omegaterapia.visits.model.entities.AuthUser
+import das.omegaterapia.visits.utils.APIClient
 import das.omegaterapia.visits.utils.CipherUtil
 import das.omegaterapia.visits.utils.TemporalConverter
 import kotlinx.coroutines.flow.Flow
@@ -40,7 +42,6 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 private object PreferencesKeys {
     val LAST_LOGGED_USER = stringPreferencesKey("last_logged_user")
 
-
     // Dynamic keys depending on the current user
     fun USER_LANG(user: String) = stringPreferencesKey("${user}_lang")
     fun USER_DAY_CONVERTER(user: String) = stringPreferencesKey("${user}_day_converter")
@@ -62,8 +63,19 @@ private object PreferencesKeys {
  */
 
 @Singleton
-class PreferencesRepository @Inject constructor(private val context: Context, private val cipher: CipherUtil) : ILoginSettings, IUserPreferences {
-    private val cipherKey = "last_logged_auth_user"
+class PreferencesRepository @Inject constructor(
+    private val context: Context,
+    private val cipher: CipherUtil,
+    private val apiClient: APIClient,
+) : ILoginSettings, IUserPreferences {
+
+
+    companion object {
+        private const val CIPHER_KEY = "last_logged_auth_user"
+    }
+
+    private lateinit var profileImage: Bitmap
+
 
     /*------------------------------------------------
     |                Last User Logged                |
@@ -78,7 +90,7 @@ class PreferencesRepository @Inject constructor(private val context: Context, pr
 
 
         return if (encryptedData != null) {
-            val data = cipher.decryptData(cipherKey, encryptedData)
+            val data = cipher.decryptData(CIPHER_KEY, encryptedData)
             Json.decodeFromString(data)
         } else null
     }
@@ -86,7 +98,7 @@ class PreferencesRepository @Inject constructor(private val context: Context, pr
     // Set the last logged user on DataStore Preferences
     override suspend fun setLastLoggedUser(user: AuthUser) {
         context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.LAST_LOGGED_USER] = cipher.encryptData(cipherKey, Json.encodeToString(user))
+            preferences[PreferencesKeys.LAST_LOGGED_USER] = cipher.encryptData(CIPHER_KEY, Json.encodeToString(user))
         }
     }
 
@@ -132,5 +144,18 @@ class PreferencesRepository @Inject constructor(private val context: Context, pr
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.USER_MULTIPLE_DAY_CONVERTER(user)] = converter
         }
+    }
+
+    //TODO Documentar
+    override suspend fun userProfileImage(): Bitmap {
+        if (!this::profileImage.isInitialized) {
+            profileImage = apiClient.getUserProfile()
+        }
+        return profileImage
+    }
+
+    override suspend fun setUserProfileImage(image: Bitmap) {
+        profileImage = image
+        apiClient.uploadUserProfile(image)
     }
 }

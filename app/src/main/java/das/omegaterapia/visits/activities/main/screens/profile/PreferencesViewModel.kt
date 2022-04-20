@@ -1,6 +1,10 @@
 package das.omegaterapia.visits.activities.main.screens.profile
 
 import android.content.Context
+import android.graphics.Bitmap
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -45,10 +49,23 @@ class PreferencesViewModel @Inject constructor(
     val prefOneDayConverter = preferencesRepository.userDayConverter(currentUser)
     val prefMultipleDayConverter = preferencesRepository.userMultipleDayConverter(currentUser)
 
+    var profilePicture: Bitmap? by mutableStateOf(null)
+
+    init {
+        viewModelScope.launch(Dispatchers.IO) { profilePicture = preferencesRepository.userProfileImage() }
+    }
 
     /*************************************************
      **                    Events                   **
      *************************************************/
+    //-------------   Profile Related   ------------//
+    fun setProfileImage(image: Bitmap) {
+        viewModelScope.launch(Dispatchers.IO) {
+            profilePicture = null
+            preferencesRepository.setUserProfileImage(image)
+            profilePicture = image
+        }
+    }
 
     //------   Date Time Converter Related   -------//
 

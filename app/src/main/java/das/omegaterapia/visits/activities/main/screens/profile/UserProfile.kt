@@ -1,14 +1,24 @@
 package das.omegaterapia.visits.activities.main.screens.profile
 
+import android.graphics.Bitmap
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
@@ -19,6 +29,8 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Circle
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Today
@@ -28,11 +40,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import das.omegaterapia.visits.R
@@ -98,12 +115,18 @@ fun UserProfileScreen(
     val prefLanguage by preferencesViewModel.prefLang.collectAsState(initial = preferencesViewModel.currentSetLang)
     val prefOneDayConverter by preferencesViewModel.prefOneDayConverter.collectAsState(initial = TemporalConverter.oneDayDefault.name)
     val prefMultipleDayConverter by preferencesViewModel.prefMultipleDayConverter.collectAsState(initial = TemporalConverter.multipleDayDefault.name)
+    val profilePicture: Bitmap? = preferencesViewModel.profilePicture
 
     //---------   Dialog Control States   ----------//
     var showSelectLangDialog by rememberSaveable { mutableStateOf(false) }
     var showDayConverterDialog by rememberSaveable { mutableStateOf(false) }
     var showMultipleDaysConverterDialog by rememberSaveable { mutableStateOf(false) }
 
+
+    // TODO EVENTS
+    val onEditImage = {
+        Toast.makeText(context, "Edit Profile Image", Toast.LENGTH_SHORT).show()
+    }
 
     /*************************************************
      **                User Interface               **
@@ -155,13 +178,33 @@ fun UserProfileScreen(
             ------------------------------------------------*/
 
             //-----------------   Header   -----------------//
+            Box(contentAlignment = Alignment.BottomEnd) {
+                if (profilePicture == null) {
+                    LoadingImagePlaceholder()
+                } else {
+                    Image(
+                        modifier = Modifier
+                            .size(140.dp)
+                            .clip(CircleShape),
+                        bitmap = profilePicture.asImageBitmap(),
+                        contentDescription = null,
+                    )
+                }
 
-            Icon(
-                modifier = Modifier.size(140.dp),
-                painter = painterResource(id = R.mipmap.ic_launcher_foreground),
-                contentDescription = null,
-                tint = Color.Unspecified
-            )
+
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .padding(bottom = 8.dp, end = 0.dp)
+                        .clip(CircleShape)
+                        .clickable(onClick = onEditImage)
+                ) {
+
+                    Icon(Icons.Filled.Circle, contentDescription = null, Modifier.size(38.dp), tint = MaterialTheme.colors.primary)
+                    Icon(Icons.Filled.Edit, contentDescription = null, Modifier.size(20.dp), tint = MaterialTheme.colors.surface)
+                }
+
+            }
 
             Text(preferencesViewModel.currentUser, style = MaterialTheme.typography.h6)
 
@@ -266,3 +309,39 @@ private fun SaveAsJSONSection(visitsViewModel: VisitsViewModel) {
     }
 }
 
+
+/*************************************************
+ **          Image Loading Placeholder          **
+ *************************************************/
+@Composable
+private fun LoadingImagePlaceholder(size: Dp = 140.dp) {
+    // Creates an `InfiniteTransition` that runs infinite child animation values.
+    val infiniteTransition = rememberInfiniteTransition()
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        // `infiniteRepeatable` repeats the specified duration-based `AnimationSpec` infinitely.
+        animationSpec = infiniteRepeatable(
+            // The `keyframes` animates the value by specifying multiple timestamps.
+            animation = keyframes {
+                // One iteration is 1000 milliseconds.
+                durationMillis = 1000
+                // 0.7f at the middle of an iteration.
+                0.7f at 500
+            },
+            // When the value finishes animating from 0f to 1f, it repeats by reversing the
+            // animation direction.
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+
+    Icon(
+        modifier = Modifier
+            .size(size)
+            .clip(CircleShape)
+            .alpha(alpha),
+        painter = painterResource(id = R.mipmap.ic_launcher_foreground),
+        contentDescription = null,
+        tint = Color.Unspecified
+    )
+}

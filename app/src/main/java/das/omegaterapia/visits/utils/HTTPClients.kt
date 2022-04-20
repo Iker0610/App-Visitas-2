@@ -1,6 +1,7 @@
 package das.omegaterapia.visits.utils
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import das.omegaterapia.visits.model.entities.AuthUser
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -122,8 +123,10 @@ class APIClient @Inject constructor() {
         }
     }
 
-    suspend fun getUserProfile() {
-        TODO("Por Implementar")
+    suspend fun getUserProfile(): Bitmap {
+        val response = httpClient.get("https://api.omegaterapia.das.ranap.eus/profile/image")
+        val image: ByteArray = response.body()
+        return BitmapFactory.decodeByteArray(image, 0, image.size)
     }
 
     suspend fun uploadUserProfile(image: Bitmap) {
@@ -136,7 +139,7 @@ class APIClient @Inject constructor() {
             formData = formData {
                 append("image", byteArray, Headers.build {
                     append(HttpHeaders.ContentType, "image/png")
-                    append(HttpHeaders.ContentDisposition, "filename=ktor_logo.png")
+                    append(HttpHeaders.ContentDisposition, "filename=profile_image.png")
                 })
             }
         )

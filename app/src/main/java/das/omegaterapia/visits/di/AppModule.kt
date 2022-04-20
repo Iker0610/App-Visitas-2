@@ -17,6 +17,7 @@ import das.omegaterapia.visits.preferences.ILoginSettings
 import das.omegaterapia.visits.preferences.IUserPreferences
 import das.omegaterapia.visits.preferences.PreferencesRepository
 import das.omegaterapia.visits.utils.AESCipher
+import das.omegaterapia.visits.utils.APIClient
 import das.omegaterapia.visits.utils.AuthenticationClient
 import javax.inject.Singleton
 
@@ -75,11 +76,13 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideLoginSettings(@ApplicationContext app: Context, cipher: AESCipher): ILoginSettings = PreferencesRepository(app, cipher)
+    fun provideLoginSettings(@ApplicationContext app: Context, cipher: AESCipher, apiClient: APIClient): ILoginSettings =
+        PreferencesRepository(app, cipher, apiClient)
 
     @Singleton
     @Provides
-    fun provideUserPreferences(@ApplicationContext app: Context, cipher: AESCipher): IUserPreferences = PreferencesRepository(app, cipher)
+    fun provideUserPreferences(@ApplicationContext app: Context, cipher: AESCipher, apiClient: APIClient): IUserPreferences =
+        PreferencesRepository(app, cipher, apiClient)
 
 
 }
