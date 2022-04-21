@@ -39,15 +39,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -112,7 +111,7 @@ fun UserProfileScreen(
 
     //-----------   Utility variables   ------------//
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
+
 
     /*------------------------------------------------
     |                     States                     |
@@ -203,36 +202,38 @@ fun UserProfileScreen(
 
             //-----------------   Header   -----------------//
             Box(contentAlignment = Alignment.BottomEnd) {
-                if (profilePicture == null) {
-                    LoadingImagePlaceholder()
-                } else {
-                    Image(
-                        modifier = Modifier
-                            .size(140.dp)
-                            .clip(CircleShape),
-                        bitmap = profilePicture.asImageBitmap(),
-                        contentDescription = null,
-                    )
+                Box(Modifier.padding(16.dp)) {
+                    if (profilePicture == null) {
+                        LoadingImagePlaceholder(size = 120.dp)
+                    } else {
+                        Image(
+                            bitmap = profilePicture.asImageBitmap(),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(120.dp)
+                                .clip(CircleShape),
+                        )
+                    }
                 }
-
 
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .padding(bottom = 8.dp, end = 0.dp)
+                        .padding(bottom = 16.dp, end = 8.dp)
                         .clip(CircleShape)
                         .clickable(onClick = ::onEditImageRequest)
                 ) {
 
-                    Icon(Icons.Filled.Circle, contentDescription = null, Modifier.size(38.dp), tint = MaterialTheme.colors.primary)
-                    Icon(Icons.Filled.Edit, contentDescription = null, Modifier.size(20.dp), tint = MaterialTheme.colors.surface)
+                    Icon(Icons.Filled.Circle, contentDescription = null, Modifier.size(34.dp), tint = MaterialTheme.colors.primary)
+                    Icon(Icons.Filled.Edit, contentDescription = null, Modifier.size(18.dp), tint = MaterialTheme.colors.surface)
                 }
 
             }
 
             Text(preferencesViewModel.currentUser, style = MaterialTheme.typography.h6)
 
-            Divider(Modifier.padding(top = 40.dp, bottom = 16.dp))
+            Divider(Modifier.padding(top = 32.dp, bottom = 16.dp))
 
 
             //------------   Language Section   ------------//
@@ -360,13 +361,13 @@ private fun LoadingImagePlaceholder(size: Dp = 140.dp) {
         )
     )
 
-    Icon(
+    Image(
         modifier = Modifier
             .size(size)
             .clip(CircleShape)
             .alpha(alpha),
         painter = painterResource(id = R.mipmap.ic_launcher_foreground),
         contentDescription = null,
-        tint = Color.Unspecified
+        contentScale = ContentScale.Crop
     )
 }
