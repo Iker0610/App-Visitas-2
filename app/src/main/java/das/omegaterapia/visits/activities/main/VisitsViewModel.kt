@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.gson.GsonBuilder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import das.omegaterapia.visits.model.entities.VisitCard
 import das.omegaterapia.visits.model.entities.VisitId
@@ -18,6 +17,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
@@ -103,7 +104,7 @@ class VisitsViewModel @Inject constructor(
      *************************************************/
 
     fun todaysVisitsJson(): String {
-        val gsonBuilder = GsonBuilder().setPrettyPrinting().create()
+        val json = Json { prettyPrint = true }
 
         return runBlocking {
             val todaysVisit = visitsRepository.getUsersTodaysVisits(currentUser).first()
@@ -117,7 +118,7 @@ class VisitsViewModel @Inject constructor(
                     )
                 }
 
-            return@runBlocking gsonBuilder.toJson(todaysVisit)
+            return@runBlocking json.encodeToString(todaysVisit)
         }
     }
 }

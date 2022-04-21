@@ -1,7 +1,9 @@
 package das.omegaterapia.visits.model
 
 import androidx.room.TypeConverter
-import com.google.gson.Gson
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -33,11 +35,11 @@ class Converters {
     //---------   String List Converters   ---------//
 
     // They convert a list of string to a json and then parse that json back to a list.
-    //  - It uses google's GSON library.
+    //  - It uses Kotlin serialization library.
 
     @TypeConverter
-    fun listToJson(value: List<String>?): String = Gson().toJson(value)
+    fun listToJson(value: List<String>?): String = Json.encodeToString(value)
 
     @TypeConverter
-    fun jsonToList(value: String): List<String> = Gson().fromJson(value, Array<String>::class.java).toMutableList()
+    fun jsonToList(value: String): List<String> = Json.decodeFromString(value)
 }
