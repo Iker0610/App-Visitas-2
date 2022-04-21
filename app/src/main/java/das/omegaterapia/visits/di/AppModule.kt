@@ -2,13 +2,13 @@ package das.omegaterapia.visits.di
 
 import android.content.Context
 import androidx.room.Room
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import das.omegaterapia.visits.model.OmegaterapiaVisitsDatabase
-import das.omegaterapia.visits.model.dao.VisitsDao
 import das.omegaterapia.visits.model.repositories.ILoginRepository
 import das.omegaterapia.visits.model.repositories.IVisitsRepository
 import das.omegaterapia.visits.model.repositories.LoginRepository
@@ -17,8 +17,7 @@ import das.omegaterapia.visits.preferences.ILoginSettings
 import das.omegaterapia.visits.preferences.IUserPreferences
 import das.omegaterapia.visits.preferences.PreferencesRepository
 import das.omegaterapia.visits.utils.AESCipher
-import das.omegaterapia.visits.utils.APIClient
-import das.omegaterapia.visits.utils.AuthenticationClient
+import das.omegaterapia.visits.utils.CipherUtil
 import javax.inject.Singleton
 
 
@@ -37,10 +36,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object AppModule {
-
-    // With Singleton we tell Dagger-Hilt to create a singleton accessible everywhere in ApplicationComponent (i.e. everywhere in the application)
-
+object DataBaseModule {
     /*************************************************
      **           ROOM Database Instances           **
      *************************************************/
@@ -56,6 +52,13 @@ object AppModule {
     @Singleton
     @Provides
     fun provideVisitsDao(db: OmegaterapiaVisitsDatabase) = db.visitsDao()
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class AppModule {
+
+    // With Singleton we tell Dagger-Hilt to create a singleton accessible everywhere in ApplicationComponent (i.e. everywhere in the application)
 
 
     /*************************************************
@@ -64,25 +67,24 @@ object AppModule {
 
     //-----------   Visits Repository   ------------//
     @Singleton
-    @Provides
-    fun provideVisitsRepository(visitsDao: VisitsDao): IVisitsRepository = VisitsRepository(visitsDao)
+    @Binds
+    abstract fun provideVisitsRepository(visitsRepository: VisitsRepository): IVisitsRepository
 
 
     //--   Settings & Preferences Repositories   ---//
     @Singleton
-    @Provides
-    fun provideLoginRepository(authenticationClient: AuthenticationClient, loginSettings: ILoginSettings): ILoginRepository =
-        LoginRepository(authenticationClient, loginSettings)
+    @Binds
+    abstract fun provideLoginRepository(loginRepository: LoginRepository): ILoginRepository
 
     @Singleton
-    @Provides
-    fun provideLoginSettings(@ApplicationContext app: Context, cipher: AESCipher, apiClient: APIClient): ILoginSettings =
-        PreferencesRepository(app, cipher, apiClient)
+    @Binds
+    abstract fun provideLoginSettings(preferencesRepository: PreferencesRepository): ILoginSettings
 
     @Singleton
-    @Provides
-    fun provideUserPreferences(@ApplicationContext app: Context, cipher: AESCipher, apiClient: APIClient): IUserPreferences =
-        PreferencesRepository(app, cipher, apiClient)
+    @Binds
+    abstract fun provideUserPreferences(preferencesRepository: PreferencesRepository): IUserPreferences
 
-
+    @Singleton
+    @Binds
+    abstract fun provideCipher(cipher: AESCipher): CipherUtil
 }

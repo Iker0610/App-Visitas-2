@@ -39,6 +39,7 @@ data class VisitId(val id: String)
  * @property observations
  * @property isVIP If the visit is to a previous client
  */
+
 @Entity(
     // Entity's foreign keys to [Client]
     foreignKeys = [

@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import dagger.hilt.android.qualifiers.ApplicationContext
 import das.omegaterapia.visits.model.entities.AuthUser
 import das.omegaterapia.visits.utils.APIClient
 import das.omegaterapia.visits.utils.CipherUtil
@@ -64,7 +65,7 @@ private object PreferencesKeys {
 
 @Singleton
 class PreferencesRepository @Inject constructor(
-    private val context: Context,
+    @ApplicationContext private val context: Context,
     private val cipher: CipherUtil,
     private val apiClient: APIClient,
 ) : ILoginSettings, IUserPreferences {

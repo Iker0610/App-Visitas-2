@@ -63,6 +63,19 @@
                 android:resource="@xml/cache_file_paths" />
         </provider>
 
+        <receiver
+            android:name=".widgets.VisitsWidgetReceiver"
+            android:enabled="@bool/glance_appwidget_available"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/visit_widget_info" />
+        </receiver>
+
     </application>
 
 </manifest>
