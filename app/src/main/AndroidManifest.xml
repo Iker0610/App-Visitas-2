@@ -52,6 +52,17 @@
             android:name=".activities.main.MainActivity"
             android:exported="false"
             android:theme="@style/Theme.OmegaterapiaTheme" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="das.omegaterapia.visits.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/cache_file_paths" />
+        </provider>
+
     </application>
 
 </manifest>
