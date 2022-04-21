@@ -2,6 +2,7 @@ package das.omegaterapia.visits.utils
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.Log
 import das.omegaterapia.visits.model.entities.AuthUser
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -51,13 +52,15 @@ class AuthenticationClient @Inject constructor() {
     private val httpClient = HttpClient(CIO) {
         install(ContentNegotiation) { json() }
         expectSuccess = true
+
         HttpResponseValidator {
             handleResponseExceptionWithRequest { exception, _ ->
                 when {
                     exception is ClientRequestException && exception.response.status == HttpStatusCode.Unauthorized -> throw AuthenticationException()
                     exception is ClientRequestException && exception.response.status == HttpStatusCode.Conflict -> throw UserExistsException()
                     else -> {
-                        exception.printStackTrace(); throw exception
+                        exception.printStackTrace()
+                        throw exception
                     }
                 }
             }
@@ -94,6 +97,8 @@ class AuthenticationClient @Inject constructor() {
 @Singleton
 class APIClient @Inject constructor() {
     private val httpClient = HttpClient(CIO) {
+        // expectSuccess = true
+
         install(ContentNegotiation) { json() }
 
         install(Auth) {
@@ -134,14 +139,16 @@ class APIClient @Inject constructor() {
         image.compress(Bitmap.CompressFormat.PNG, 100, stream)
         val byteArray = stream.toByteArray()
 
-        httpClient.submitFormWithBinaryData(
+        val responseData = httpClient.submitFormWithBinaryData(
             url = "https://api.omegaterapia.das.ranap.eus/profile/image",
             formData = formData {
-                append("image", byteArray, Headers.build {
+                append("file", byteArray, Headers.build {
                     append(HttpHeaders.ContentType, "image/png")
                     append(HttpHeaders.ContentDisposition, "filename=profile_image.png")
                 })
             }
-        )
+        ) { method = HttpMethod.Put }
+        Log.d("HTTP", responseData.status.toString())
+        Log.d("HTTP", responseData.body())
     }
 }

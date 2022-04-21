@@ -101,4 +101,5 @@
     <string name="processing">Procesando</string>
     <string name="corporation_channel_name">Canal de Omegaterapia</string>
     <string name="corporation_channel_description">Canal de notificaciones para los empleados de Omegaterapia.</string>
+    <string name="profile_not_taken_toast_msg">No se ha capturado ninguna imagen.</string>
 </resources>

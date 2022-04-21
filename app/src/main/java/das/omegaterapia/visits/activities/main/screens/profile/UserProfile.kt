@@ -1,6 +1,7 @@
 package das.omegaterapia.visits.activities.main.screens.profile
 
 import android.graphics.Bitmap
+import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -38,6 +39,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -51,6 +53,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider.getUriForFile
 import androidx.hilt.navigation.compose.hiltViewModel
 import das.omegaterapia.visits.R
 import das.omegaterapia.visits.activities.main.VisitsViewModel
@@ -61,9 +64,12 @@ import das.omegaterapia.visits.utils.DayConverterPickerDialog
 import das.omegaterapia.visits.utils.LanguagePickerDialog
 import das.omegaterapia.visits.utils.MultipleDaysConverterPickerDialog
 import das.omegaterapia.visits.utils.TemporalConverter
+import kotlinx.coroutines.DelicateCoroutinesApi
+import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
+import java.nio.file.Files
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -85,7 +91,7 @@ import java.time.format.DateTimeFormatter
  *
  * Requires 2 viewmodels: [visitsViewModel] and [preferencesViewModel
  */
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, DelicateCoroutinesApi::class)
 @Composable
 fun UserProfileScreen(
     title: String,
@@ -106,6 +112,7 @@ fun UserProfileScreen(
 
     //-----------   Utility variables   ------------//
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     /*------------------------------------------------
     |                     States                     |
@@ -123,10 +130,27 @@ fun UserProfileScreen(
     var showMultipleDaysConverterDialog by rememberSaveable { mutableStateOf(false) }
 
 
-    // TODO EVENTS
-    val onEditImage = {
-        Toast.makeText(context, "Edit Profile Image", Toast.LENGTH_SHORT).show()
+    /*************************************************
+     **                    Events                   **
+     *************************************************/
+    val toastMsg = stringResource(R.string.profile_not_taken_toast_msg)
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { pictureTaken ->
+        if (pictureTaken) preferencesViewModel.setProfileImage()
+        else Toast.makeText(context, toastMsg, Toast.LENGTH_LONG).show()
     }
+
+    fun onEditImageRequest() {
+        val profileImageDir = File(context.cacheDir, "images/profile/")
+        Files.createDirectories(profileImageDir.toPath())
+
+        val newProfileImagePath = File.createTempFile(preferencesViewModel.currentUser, ".png", profileImageDir)
+        val contentUri: Uri = getUriForFile(context, "das.omegaterapia.visits.fileprovider", newProfileImagePath)
+        preferencesViewModel.profilePicturePath = newProfileImagePath.path
+
+        imagePickerLauncher.launch(contentUri)
+    }
+
 
     /*************************************************
      **                User Interface               **
@@ -197,7 +221,7 @@ fun UserProfileScreen(
                     modifier = Modifier
                         .padding(bottom = 8.dp, end = 0.dp)
                         .clip(CircleShape)
-                        .clickable(onClick = onEditImage)
+                        .clickable(onClick = ::onEditImageRequest)
                 ) {
 
                     Icon(Icons.Filled.Circle, contentDescription = null, Modifier.size(38.dp), tint = MaterialTheme.colors.primary)
@@ -313,6 +337,7 @@ private fun SaveAsJSONSection(visitsViewModel: VisitsViewModel) {
 /*************************************************
  **          Image Loading Placeholder          **
  *************************************************/
+
 @Composable
 private fun LoadingImagePlaceholder(size: Dp = 140.dp) {
     // Creates an `InfiniteTransition` that runs infinite child animation values.

@@ -2,6 +2,7 @@ package das.omegaterapia.visits.activities.main.screens.profile
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -50,6 +51,9 @@ class PreferencesViewModel @Inject constructor(
     val prefMultipleDayConverter = preferencesRepository.userMultipleDayConverter(currentUser)
 
     var profilePicture: Bitmap? by mutableStateOf(null)
+        private set
+
+    var profilePicturePath: String? = null
 
     init {
         viewModelScope.launch(Dispatchers.IO) { profilePicture = preferencesRepository.userProfileImage() }
@@ -59,11 +63,18 @@ class PreferencesViewModel @Inject constructor(
      **                    Events                   **
      *************************************************/
     //-------------   Profile Related   ------------//
-    fun setProfileImage(image: Bitmap) {
+    private fun setProfileImage(image: Bitmap) {
         viewModelScope.launch(Dispatchers.IO) {
             profilePicture = null
             preferencesRepository.setUserProfileImage(image)
             profilePicture = image
+        }
+    }
+
+    fun setProfileImage() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val image = BitmapFactory.decodeFile(profilePicturePath!!)
+            setProfileImage(image)
         }
     }
 
