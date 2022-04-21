@@ -128,7 +128,7 @@ fun VisitList(
 
             //----   Sub-Section Items (Visit Cards)   -----//
 
-            items(groupVisitCards, key = { visitCard -> visitCard.hashCode() })
+            items(groupVisitCards, key = { visitCard -> visitCard.id })
             { visitCard ->
                 SwipeableVisitCardItem(
                     modifier = Modifier.padding(horizontal = 8.dp),
