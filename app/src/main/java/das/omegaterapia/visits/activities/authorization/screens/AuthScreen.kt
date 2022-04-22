@@ -1,6 +1,7 @@
 package das.omegaterapia.visits.activities.authorization.screens
 
 import android.content.res.Configuration
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
@@ -122,8 +123,17 @@ fun AuthScreen(
             try {
                 // Check if user has been correctly created
                 val user = authViewModel.checkSignIn()
+
                 if (user != null) {
                     onSuccessfulSignIn(user)
+
+                    // Log the new user and check if everything went OK
+                    if (authViewModel.checkUserLogin(user)) {
+                        onSuccessfulLogin(user)
+                    } else {
+                        Toast.makeText(context, "Error when logging new user.", Toast.LENGTH_LONG).show()
+                        showGenericErrorDialog = true
+                    }
                 } else {
                     showSignInErrorDialog = authViewModel.signInUserExists
                     authViewModel.backgroundBlockingTaskOnCourse = false

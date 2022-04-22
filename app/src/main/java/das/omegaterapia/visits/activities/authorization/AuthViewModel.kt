@@ -98,16 +98,23 @@ class AuthViewModel @Inject constructor(private val loginRepository: ILoginRepos
     //--------------   Login Events   --------------//
 
     /**
+     * Checks if the given [authUser] is a valid user in the system.
+     */
+    suspend fun checkUserLogin(authUser: AuthUser): Boolean {
+        backgroundBlockingTaskOnCourse = true
+        return loginRepository.authenticateUser(authUser)
+    }
+
+
+    /**
      * Checks credentials of [lastLoggedUser] and updates [biometricAuthenticationStatus] depending on the result.
      * Logged [AuthUser] if everything is correct or null otherwise.
      */
     suspend fun checkBiometricLogin(): AuthUser? {
-        backgroundBlockingTaskOnCourse = true
-
         if (biometricAuthenticationStatus != NO_CREDENTIALS) {
             biometricAuthenticationStatus =
                 try {
-                    if (loginRepository.authenticateUser(lastLoggedUser!!)) AUTHENTICATED else CREDENTIALS_ERROR
+                    if (checkUserLogin(lastLoggedUser!!)) AUTHENTICATED else CREDENTIALS_ERROR
                 } catch (e: Exception) {
                     ERROR
                 }
@@ -124,10 +131,8 @@ class AuthViewModel @Inject constructor(private val loginRepository: ILoginRepos
      */
     @Throws(Exception::class)
     suspend fun checkUserPasswordLogin(): AuthUser? {
-        backgroundBlockingTaskOnCourse = true
-
         val user = AuthUser(loginUsername, loginPassword)
-        isLoginCorrect = loginRepository.authenticateUser(user)
+        isLoginCorrect = checkUserLogin(user)
         return if (isLoginCorrect) user else null
     }
 

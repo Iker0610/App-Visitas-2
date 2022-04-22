@@ -155,9 +155,6 @@ class AuthActivity : FragmentActivity() {
         with(NotificationManagerCompat.from(this)) {
             notify(NotificationID.USER_CREATED.id, builder.build())
         }
-
-        // Log the new user
-        onSuccessfulLogin(user)
     }
 
     /**
