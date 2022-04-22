@@ -62,10 +62,11 @@ class VisitsViewModel @Inject constructor(
         // Edit the flow to group list items by date with the user selected grouping
         .map { visitList -> getMultipleDayFormatter().groupDates(visitList, key = VisitCard::visitDate::get) }
 
-    val todaysVisits = visitsRepository.getUsersTodaysVisits(currentUser)
+    val todayVisits = visitsRepository.getUsersTodaysVisits(currentUser)
+
+    val groupedTodaysVisits = todayVisits
         // Edit the flow to group list items by date with the user selected grouping
         .map { visitList -> getDayFormatter().groupDates(visitList, key = VisitCard::visitDate::get) }
-
 
     // It should be null always except on Edit Visit Screen
     var currentToEditVisit: VisitCard? by mutableStateOf(null)

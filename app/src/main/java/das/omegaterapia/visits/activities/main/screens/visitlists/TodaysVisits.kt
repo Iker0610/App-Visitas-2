@@ -61,7 +61,7 @@ fun TodaysVisitsScreen(
 
 
     //----------   ViewModel and State   -----------//
-    val groupedVisits by visitViewModel.todaysVisits.collectAsState(emptyMap())
+    val groupedVisits by visitViewModel.groupedTodaysVisits.collectAsState(emptyMap())
     var showExitAlertDialog by rememberSaveable { mutableStateOf(false) }
 
 
