@@ -58,6 +58,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import das.omegaterapia.visits.activities.main.screens.MainActivityScreens
 import das.omegaterapia.visits.activities.main.screens.addedit.AddVisitScreen
 import das.omegaterapia.visits.activities.main.screens.addedit.EditVisitScreen
+import das.omegaterapia.visits.activities.main.screens.map.VisitsMapScreen
 import das.omegaterapia.visits.activities.main.screens.profile.PreferencesViewModel
 import das.omegaterapia.visits.activities.main.screens.profile.UserProfileScreen
 import das.omegaterapia.visits.activities.main.screens.visitlists.AllVisitsScreen
@@ -209,6 +210,8 @@ private fun MainActivityScreen(
     val onNavigateToAccount =
         { navController.navigate(MainActivityScreens.Account.route + "/${visitViewModel.currentUser}") { launchSingleTop = true } }
 
+    val onNavigateToVisitsMap =
+        { navController.navigate(MainActivityScreens.VisitsMap.route) { launchSingleTop = true } }
 
     /*************************************************
      **              Common UI Elements             **
@@ -321,7 +324,8 @@ private fun MainActivityScreen(
                     BottomNavBar(
                         currentScreenTitle = MainActivityScreens.fromRoute(currentRoute?.destination?.route).title(LocalContext.current),
                         onOpenMenu = { scope.launch { drawerState.open() } },
-                        onAccountClicked = onNavigateToAccount
+                        onAccountClicked = onNavigateToAccount,
+                        onVisitMapClicked = onNavigateToVisitsMap,
                     )
                 }
             },
@@ -402,8 +406,18 @@ private fun MainActivityScreen(
                             }
                         }
 
-                        //--------   Account Naviggation Icon   --------//
 
+                        //--------   Bottom Navigation Icons   ---------//
+
+                        // Visits' Map Icon
+                        NavRailIcon(
+                            icon = MainActivityScreens.VisitsMap.icon,
+                            contentDescription = MainActivityScreens.VisitsMap.title(LocalContext.current),
+                            isSelected = currentRoute?.destination?.route == MainActivityScreens.VisitsMap.route,
+                            action = onNavigateToVisitsMap
+                        )
+
+                        //Account Icon
                         NavRailIcon(
                             icon = MainActivityScreens.Account.icon,
                             contentDescription = MainActivityScreens.Account.title(LocalContext.current),
@@ -497,6 +511,36 @@ private fun MainActivityScreen(
                             onBackPressed = navigateBack,
                             visitsViewModel = visitViewModel,
                             preferencesViewModel = preferencesViewModel
+                        )
+                    }
+
+
+                    //-----------   Visit's Map Screen   -----------//
+                    composable(
+                        route = MainActivityScreens.VisitsMap.route,
+                        enterTransition = {
+                            slideInHorizontally(
+                                initialOffsetX = { it },
+                                animationSpec = spring(
+                                    dampingRatio = 2f,
+                                    stiffness = Spring.StiffnessMedium
+                                )
+                            )
+                        },
+                        exitTransition = {
+                            slideOutHorizontally(
+                                targetOffsetX = { it },
+                                animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioNoBouncy,
+                                    stiffness = Spring.StiffnessMedium
+                                )
+                            )
+                        },
+                    ) {
+                        VisitsMapScreen(
+                            MainActivityScreens.VisitsMap.title(LocalContext.current),
+                            onBackPressed = navigateBack,
+                            visitsViewModel = visitViewModel,
                         )
                     }
 

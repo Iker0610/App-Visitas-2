@@ -133,6 +133,10 @@ dependencies {
 
     // Glance for Widgets
     implementation "androidx.glance:glance-appwidget:1.0.0-SNAPSHOT"
+
+    // Google Maps
+    implementation "com.google.maps.android:maps-compose:1.0.0"
+    implementation "com.google.android.gms:play-services-maps:18.0.2"
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {

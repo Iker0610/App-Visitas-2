@@ -1,6 +1,7 @@
 package das.omegaterapia.visits.activities.main.screens.addedit
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -33,10 +34,15 @@ fun EditVisitScreen(
     /*------------------------------------------------
     |                 User Interface                 |
     ------------------------------------------------*/
-    Scaffold(topBar = { BackArrowTopBar(title, onBackPressed) }) {
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            BackArrowTopBar(title, onBackPressed)
+        }
+    ) { paddingValues ->
         VisitForm(
             initialVisitCard = visitCard,
-            modifier = modifier,
+            modifier = Modifier.padding(paddingValues),
             submitVisitCard = onEditVisitCard,
             onSuccessfulSubmit = onSuccessfulSubmit
         )

@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.RecentActors
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Today
@@ -23,7 +24,8 @@ enum class MainActivityScreens(var route: String, var icon: ImageVector) {
     VIPs("vip_visits", Icons.Filled.Star),
     AddVisit("add_visit", Icons.Filled.Add),
     EditVisit("edit_visit", Icons.Filled.Edit),
-    Account("account", Icons.Filled.AccountCircle);
+    Account("account", Icons.Filled.AccountCircle),
+    VisitsMap("visits_map", Icons.Filled.Map);
 
     // Get if this MainActivityScreen is one of the main screens
     fun isNavigable(): Boolean = this in navigableScreens
@@ -50,6 +52,7 @@ enum class MainActivityScreens(var route: String, var icon: ImageVector) {
                 AddVisit.route -> AddVisit
                 EditVisit.route -> EditVisit
                 Account.route -> Account
+                VisitsMap.route -> VisitsMap
                 null -> TodaysVisits
                 else -> throw IllegalArgumentException("Route $route is not recognized.")
             }

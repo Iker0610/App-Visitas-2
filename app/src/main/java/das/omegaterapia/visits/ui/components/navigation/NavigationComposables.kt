@@ -2,6 +2,7 @@ package das.omegaterapia.visits.ui.components.navigation
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -90,7 +91,12 @@ fun AddFloatingActionButton(
  * @param onAccountClicked
  */
 @Composable
-fun BottomNavBar(currentScreenTitle: String, onOpenMenu: () -> Unit, onAccountClicked: () -> Unit) {
+fun BottomNavBar(
+    currentScreenTitle: String,
+    onOpenMenu: () -> Unit,
+    onAccountClicked: () -> Unit,
+    onVisitMapClicked: () -> Unit,
+) {
 
     BottomAppBar(cutoutShape = FABShape) {
 
@@ -119,9 +125,17 @@ fun BottomNavBar(currentScreenTitle: String, onOpenMenu: () -> Unit, onAccountCl
 
         //---------------   Right Side   ---------------//
 
-        Row {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             // Add an spacer to fill the remaining space
             Spacer(Modifier.weight(1f, true))
+
+            // Add Visit Map icon
+            IconButton(onClick = onVisitMapClicked) {
+                Icon(
+                    MainActivityScreens.VisitsMap.icon,
+                    contentDescription = MainActivityScreens.VisitsMap.title(LocalContext.current)
+                )
+            }
 
             // Add Account icon
             IconButton(onClick = onAccountClicked) {

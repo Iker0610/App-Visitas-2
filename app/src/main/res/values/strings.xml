@@ -103,4 +103,5 @@
     <string name="profile_not_taken_toast_msg">No picture taken.</string>
     <string name="visit_widget_description">Widget to show today\'s visits.</string>
     <string name="widget_title">Today\'s %1$s\'s Visits</string>
+    <string name="visits_map_screen_title">Today\'s Visits\' Map</string>
 </resources>

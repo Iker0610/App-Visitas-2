@@ -104,4 +104,5 @@
     <string name="profile_not_taken_toast_msg">No se ha capturado ninguna imagen.</string>
     <string name="visit_widget_description">Widget para mostrar las visitas de hoy.</string>
     <string name="widget_title">Visitas de Hoy de %1$s</string>
+    <string name="visits_map_screen_title">Mapa de las Visitas de Hoy</string>
 </resources>
