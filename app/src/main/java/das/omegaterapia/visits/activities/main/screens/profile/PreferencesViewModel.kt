@@ -14,6 +14,7 @@ import das.omegaterapia.visits.preferences.IUserPreferences
 import das.omegaterapia.visits.utils.AppLanguage
 import das.omegaterapia.visits.utils.LanguageManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -56,7 +57,10 @@ class PreferencesViewModel @Inject constructor(
     var profilePicturePath: String? = null
 
     init {
-        viewModelScope.launch(Dispatchers.IO) { profilePicture = preferencesRepository.userProfileImage() }
+        viewModelScope.launch(Dispatchers.IO) {
+            delay(100)
+            profilePicture = preferencesRepository.userProfileImage()
+        }
     }
 
     /*************************************************
