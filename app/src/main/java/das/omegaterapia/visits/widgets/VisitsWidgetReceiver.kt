@@ -67,7 +67,7 @@ class VisitsWidgetReceiver : GlanceAppWidgetReceiver() {
                         client = it.client.toString(),
                         hour = it.visitDate.format(DateTimeFormatter.ofPattern("HH:mm")).uppercase(),
                         phoneNumber = it.client.phoneNum,
-                        shortDirection = "${it.client.direction.address}, ${it.client.direction.town}",
+                        shortDirection = it.client.direction.town,
                         fullDirection = it.client.direction.toString()
                     )
                 }
@@ -76,11 +76,16 @@ class VisitsWidgetReceiver : GlanceAppWidgetReceiver() {
             GlanceAppWidgetManager(context).getGlanceIds(VisitsWidget::class.java).forEach { glanceId ->
                 updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { pref ->
                     pref.toMutablePreferences().apply {
-                        this[currentUserKey] = currentUsername ?: "No User Real"
-                        this[todayVisitsDataKey] = Json.encodeToString(visitData)
+                        if (currentUsername != null) {
+                            this[currentUserKey] = currentUsername
+                            this[todayVisitsDataKey] = Json.encodeToString(visitData)
+                        } else {
+                            this.clear()
+                        }
                     }
                 }
             }
+
             glanceAppWidget.updateAll(context)
         }
     }

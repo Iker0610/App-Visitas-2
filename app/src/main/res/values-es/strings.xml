@@ -105,4 +105,6 @@
     <string name="visit_widget_description">Widget para mostrar las visitas de hoy.</string>
     <string name="widget_title">Visitas de Hoy de %1$s</string>
     <string name="visits_map_screen_title">Mapa de las Visitas de Hoy</string>
+    <string name="widget_title_no_user">Visitas de Hoy</string>
+    <string name="widget_no_user_content">No has iniciado sesión aún.</string>
 </resources>

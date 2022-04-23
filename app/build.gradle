@@ -132,7 +132,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-messaging-ktx:23.0.3'
 
     // Glance for Widgets
-    implementation "androidx.glance:glance-appwidget:1.0.0-SNAPSHOT"
+    implementation "androidx.glance:glance-appwidget:1.0.0-alpha03"
 
     // Google Maps
     implementation "com.google.maps.android:maps-compose:1.0.0"

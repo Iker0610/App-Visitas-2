@@ -47,6 +47,7 @@ import das.omegaterapia.visits.widgets.VisitsWidgetReceiver.Companion.todayVisit
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlin.text.split
+import kotlin.text.uppercase
 
 /*******************************************************************************
  ****                             Visits Widget                             ****
@@ -64,7 +65,7 @@ class VisitsWidget : GlanceAppWidget() {
     override fun Content() {
         val context = LocalContext.current
         val prefs = currentState<Preferences>()
-        val user = prefs[currentUserKey] ?: "No User"
+        val user = prefs[currentUserKey]
         val data: String? = prefs[todayVisitsDataKey]
         val visitList: List<WidgetVisit> = if (data != null) Json.decodeFromString(data) else emptyList()
 
@@ -75,18 +76,30 @@ class VisitsWidget : GlanceAppWidget() {
                 .background(color = Color.White)
                 .padding(16.dp)
         ) {
+
             Text(
-                text = context.getString(R.string.widget_title, user),
+                text = if (user != null) context.getString(R.string.widget_title, user) else context.getString(R.string.widget_title_no_user),
                 modifier = GlanceModifier.fillMaxWidth().padding(bottom = 16.dp),
                 style = Typography.H6.style,
                 maxLines = 1
             )
 
-            LazyColumn(modifier = GlanceModifier.fillMaxSize().defaultWeight()) {
-                items(visitList) { item ->
-                    VisitItem(visit = item)
+            if (user != null) {
+                LazyColumn(modifier = GlanceModifier.fillMaxSize().defaultWeight()) {
+                    items(visitList, itemId = { it.hashCode().toLong() }) { item ->
+                        VisitItem(visit = item)
+                    }
+                }
+            } else {
+                Column(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = GlanceModifier.fillMaxSize().defaultWeight()
+                ) {
+                    Text(text = context.getString(R.string.widget_no_user_content))
                 }
             }
+
 
             Spacer(GlanceModifier.height(8.dp))
 
@@ -117,12 +130,12 @@ class VisitsWidget : GlanceAppWidget() {
                 Spacer(GlanceModifier.width(16.dp))
 
                 Column {
-                    Text(text = visit.shortDirection, modifier = GlanceModifier.defaultWeight(), style = Typography.OVERLINE.style)
+                    Text(text = visit.shortDirection.uppercase(), modifier = GlanceModifier.defaultWeight(), style = Typography.OVERLINE.style)
                     Text(text = visit.client, modifier = GlanceModifier.defaultWeight(), style = Typography.BODY2.style)
                 }
             }
 
-            Row(horizontalAlignment = Alignment.CenterHorizontally) {
+            Row(horizontalAlignment = Alignment.CenterHorizontally, modifier = GlanceModifier.padding(start = 16.dp)) {
                 Image(
                     provider = ImageProvider(R.drawable.widget_call_icon),
                     contentDescription = null,
@@ -184,7 +197,7 @@ private enum class Typography(val style: TextStyle) {
 
 class VisitsWidgetRefreshCallback : ActionCallback {
 
-    override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
+    override suspend fun onRun(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
         val intent = Intent(context, VisitsWidgetReceiver::class.java).apply { action = UPDATE_ACTION }
         context.sendBroadcast(intent)
     }
