@@ -1,5 +1,6 @@
 package das.omegaterapia.visits.activities.main
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -121,6 +122,7 @@ class MainActivity : ComponentActivity() {
  ****                              Main Screen                              ****
  *******************************************************************************/
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @OptIn(ExperimentalAnimationApi::class, ExperimentalMaterialApi::class)
 @Composable
 private fun MainActivityScreen(
@@ -330,9 +332,7 @@ private fun MainActivityScreen(
                 }
             },
         )
-        { padding ->
-
-
+        {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxSize()

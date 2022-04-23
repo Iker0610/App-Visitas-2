@@ -1,19 +1,26 @@
 package das.omegaterapia.visits.activities.main.screens.map
 
+import android.Manifest
 import android.location.Geocoder
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.rememberCameraPositionState
 import das.omegaterapia.visits.R
@@ -37,17 +44,19 @@ fun VisitsMapScreen(
     val geocoder = Geocoder(LocalContext.current)
 
     val visits by visitsViewModel.todayVisits.collectAsState(initial = emptyList())
-    val locations by derivedStateOf {
-        visits.mapNotNull { visit ->
-            val location = getLatLngFromAddress(geocoder, visit.client.direction.toString())
-            if (location != null) {
-                VisitInMap(
-                    location = location,
-                    clientName = visit.client.toString(),
-                    hour = visit.visitDate.format(DateTimeFormatter.ofPattern("HH:mm")),
-                    address = visit.client.direction.address
-                )
-            } else null
+    val locations by remember {
+        derivedStateOf {
+            visits.mapNotNull { visit ->
+                val location = getLatLngFromAddress(geocoder, visit.client.direction.toString())
+                if (location != null) {
+                    VisitInMap(
+                        location = location,
+                        clientName = visit.client.toString(),
+                        hour = visit.visitDate.format(DateTimeFormatter.ofPattern("HH:mm")),
+                        address = visit.client.direction.address
+                    )
+                } else null
+            }
         }
     }
 
@@ -65,11 +74,21 @@ fun VisitsMapScreen(
     }
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 private fun VisitsMap(
     locations: List<VisitInMap>,
     modifier: Modifier = Modifier,
 ) {
+    val locationPermissionState = rememberPermissionState(permission = Manifest.permission.ACCESS_FINE_LOCATION)
+    val showCurrentLocation by derivedStateOf { locationPermissionState.status.isGranted }
+
+    LaunchedEffect(true) {
+        if (!locationPermissionState.status.isGranted) {
+            locationPermissionState.launchPermissionRequest()
+        }
+    }
+
     val bilbo = LatLng(43.264006875065775, -2.9351156221491275)
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(bilbo, 10f)
@@ -77,7 +96,8 @@ private fun VisitsMap(
 
     GoogleMap(
         modifier = modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState
+        cameraPositionState = cameraPositionState,
+        properties = MapProperties(isMyLocationEnabled = showCurrentLocation)
     ) {
         locations.forEach {
             Marker(
@@ -90,17 +110,6 @@ private fun VisitsMap(
                     size = 120)
             )
         }
-
-        Marker(
-            position = bilbo,
-            title = "Bilbao",
-            snippet = "Marker in Bilbao",
-            icon = bitmapDescriptorFromVector(
-                LocalContext.current,
-                R.drawable.ic_current_location,
-                size = 120,
-            )
-        )
     }
 }
 
