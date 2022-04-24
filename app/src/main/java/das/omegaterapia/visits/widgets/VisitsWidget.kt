@@ -1,7 +1,6 @@
 package das.omegaterapia.visits.widgets
 
 
-import WidgetVisit
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -42,6 +41,7 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import das.omegaterapia.visits.R
+import das.omegaterapia.visits.model.entities.CompactVisitData
 import das.omegaterapia.visits.widgets.VisitsWidgetReceiver.Companion.currentUserKey
 import das.omegaterapia.visits.widgets.VisitsWidgetReceiver.Companion.todayVisitsDataKey
 import kotlinx.serialization.decodeFromString
@@ -67,7 +67,7 @@ class VisitsWidget : GlanceAppWidget() {
         val prefs = currentState<Preferences>()
         val user = prefs[currentUserKey]
         val data: String? = prefs[todayVisitsDataKey]
-        val visitList: List<WidgetVisit> = if (data != null) Json.decodeFromString(data) else emptyList()
+        val visitList: List<CompactVisitData> = if (data != null) Json.decodeFromString(data) else emptyList()
 
         Column(
             horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
@@ -112,7 +112,7 @@ class VisitsWidget : GlanceAppWidget() {
     }
 
     @Composable
-    private fun VisitItem(visit: WidgetVisit) {
+    private fun VisitItem(visit: CompactVisitData) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = GlanceModifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)

@@ -7,6 +7,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import das.omegaterapia.visits.model.MIGRATION_2_3
 import das.omegaterapia.visits.model.OmegaterapiaVisitsDatabase
 import das.omegaterapia.visits.model.dao.VisitsDao
 import das.omegaterapia.visits.model.repositories.ILoginRepository
@@ -49,6 +50,7 @@ object AppModule {
     fun providesOmegaterapiaVisitsDatabase(@ApplicationContext app: Context) =
         Room.databaseBuilder(app, OmegaterapiaVisitsDatabase::class.java, "omegaterapia_visits_database_2")
             .createFromAsset("database/omegaterapia_visits_database.db")
+            .addMigrations(MIGRATION_2_3)
             .build()
 
     //------------------   DAOs   ------------------//
@@ -56,6 +58,10 @@ object AppModule {
     @Singleton
     @Provides
     fun provideVisitsDao(db: OmegaterapiaVisitsDatabase) = db.visitsDao()
+
+    @Singleton
+    @Provides
+    fun provideVisitAlarmDao(db: OmegaterapiaVisitsDatabase) = db.visitAlarmDao()
 
 
     /*************************************************

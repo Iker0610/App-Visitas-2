@@ -3,8 +3,12 @@ package das.omegaterapia.visits.model
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
+import das.omegaterapia.visits.model.dao.VisitAlarmDao
 import das.omegaterapia.visits.model.dao.VisitsDao
 import das.omegaterapia.visits.model.entities.Client
+import das.omegaterapia.visits.model.entities.VisitAlarmEntity
 import das.omegaterapia.visits.model.entities.VisitData
 
 /**
@@ -12,15 +16,28 @@ import das.omegaterapia.visits.model.entities.VisitData
  *
  * Version: 1
  *
- * Entities: [VisitData], [Client]
- * Defined DAOs: [VisitsDao]
+ * Entities: [VisitData], [Client], [VisitData]
+ * Defined DAOs: [VisitsDao], [VisitAlarmDao]
  *
  */
 @Database(
-    version = 2,
-    entities = [VisitData::class, Client::class],
+    version = 3,
+    entities = [VisitData::class, Client::class, VisitAlarmEntity::class],
 )
 @TypeConverters(Converters::class)
 abstract class OmegaterapiaVisitsDatabase : RoomDatabase() {
     abstract fun visitsDao(): VisitsDao
+    abstract fun visitAlarmDao(): VisitAlarmDao
+}
+
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL(
+            """CREATE TABLE `VisitAlarm` (
+                |`visitId` VARCHAR, 
+                |PRIMARY KEY(`id`), 
+                |FOREIGN KEY (visitId) REFERENCES VisitData(id)
+                |)""".trimMargin()
+        )
+    }
 }

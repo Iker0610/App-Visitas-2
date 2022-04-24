@@ -1,6 +1,5 @@
 package das.omegaterapia.visits.widgets
 
-import WidgetVisit
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
@@ -13,6 +12,7 @@ import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.appwidget.updateAll
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import dagger.hilt.android.AndroidEntryPoint
+import das.omegaterapia.visits.model.entities.CompactVisitData
 import das.omegaterapia.visits.model.repositories.VisitsRepository
 import das.omegaterapia.visits.preferences.ILoginSettings
 import kotlinx.coroutines.MainScope
@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 /*************************************************
@@ -61,16 +60,7 @@ class VisitsWidgetReceiver : GlanceAppWidgetReceiver() {
             val currentUsername = loginRepository.getLastLoggedUser()?.username
 
             val visitData = if (currentUsername != null) {
-                visitsRepository.getUsersTodaysVisits(currentUsername).first().map {
-                    WidgetVisit(
-                        isVIP = it.isVIP,
-                        client = it.client.toString(),
-                        hour = it.visitDate.format(DateTimeFormatter.ofPattern("HH:mm")).uppercase(),
-                        phoneNumber = it.client.phoneNum,
-                        shortDirection = it.client.direction.town,
-                        fullDirection = it.client.direction.toString()
-                    )
-                }
+                visitsRepository.getUsersTodaysVisits(currentUsername).first().map(::CompactVisitData)
             } else emptyList()
 
             GlanceAppWidgetManager(context).getGlanceIds(VisitsWidget::class.java).forEach { glanceId ->

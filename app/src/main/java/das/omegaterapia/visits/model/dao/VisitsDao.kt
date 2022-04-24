@@ -125,6 +125,4 @@ interface VisitsDao {
     @Transaction
     @Query("SELECT * FROM VisitData WHERE user = :currentUser AND is_VIP = 1 ORDER BY visit_date")
     fun getUsersVIPVisits(currentUser: String): Flow<List<VisitCard>>
-
-
 }

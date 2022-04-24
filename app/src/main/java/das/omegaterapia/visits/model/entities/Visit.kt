@@ -1,5 +1,6 @@
 package das.omegaterapia.visits.model.entities
 
+import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
@@ -8,7 +9,10 @@ import androidx.room.Ignore
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
+import kotlinx.parcelize.Parcelize
+import kotlinx.serialization.Serializable
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 
@@ -110,6 +114,9 @@ data class VisitCard(
     @delegate:Ignore
     val id by visitData::id
 
+    val intId: Int
+        get() = id.hashCode()
+
     @delegate:Ignore
     var user by visitData::user
 
@@ -124,4 +131,33 @@ data class VisitCard(
 
     @delegate:Ignore
     val isVIP by visitData::isVIP
+
+}
+
+
+// TODO DOCUMENTAR
+@Parcelize
+@Serializable
+data class CompactVisitData(
+    val id: String,
+    val isVIP: Boolean,
+    val hour: String,
+    val client: String,
+    val phoneNumber: String,
+    val shortDirection: String,
+    val fullDirection: String,
+) : Parcelable {
+    constructor(visit: VisitCard) : this(
+        id = visit.id,
+        isVIP = visit.isVIP,
+        client = visit.client.toString(),
+        hour = visit.visitDate.format(DateTimeFormatter.ofPattern(HOUR_FORMAT)),
+        phoneNumber = visit.client.phoneNum,
+        shortDirection = visit.client.direction.town,
+        fullDirection = visit.client.direction.toString()
+    )
+
+    companion object {
+        const val HOUR_FORMAT = "HH:mm"
+    }
 }

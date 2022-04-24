@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Omegaterapia Visitas</string>
-    <string name="auth_channel_name">Canal de Autentificación</string>
-    <string name="auth_channel_description">Canal de notificaciones para eventos de autentificación.</string>
+    <string name="auth_channel_name">Autenticación</string>
+    <string name="auth_channel_description">Canal de notificaciones para eventos de autenticación.</string>
     <string name="fab_icon_description">Añadir nueva ficha</string>
     <string name="save_json_section_title">Guardar las fichas de hoy como JSON</string>
     <string name="save_button">Guardar</string>
@@ -99,7 +99,7 @@
     <string name="saved_credentials_not_longer_valid_dialog_text">Las credenciales del usuario anterior no son actualmente válidas. Esto puede deberse a que el usuario ya no existe o a un cambio de contraseña.</string>
     <string name="saved_credentials_not_longer_valid_dialog_solution_text">Para continuar vuelve a iniciar sesión con el nombre de usuario y la ocntraseña.</string>
     <string name="processing">Procesando</string>
-    <string name="corporation_channel_name">Canal de Omegaterapia</string>
+    <string name="corporation_channel_name">Omegaterapia</string>
     <string name="corporation_channel_description">Canal de notificaciones para los empleados de Omegaterapia.</string>
     <string name="profile_not_taken_toast_msg">No se ha capturado ninguna imagen.</string>
     <string name="visit_widget_description">Widget para mostrar las visitas de hoy.</string>
@@ -107,4 +107,9 @@
     <string name="visits_map_screen_title">Mapa de las Visitas de Hoy</string>
     <string name="widget_title_no_user">Visitas de Hoy</string>
     <string name="widget_no_user_content">No has iniciado sesión aún.</string>
+    <string name="visit_alarm_channel_name">Recordatorios de Visitas</string>
+    <string name="visit_alarm_channel_description">Canal para los recordatorios de las visitas elegidas por el usuario.</string>
+    <string name="work_chennel_group_name">Trabajo</string>
+    <string name="visit_remainder_notification_title">Recordatorio: Visita a las %1$s</string>
+    <string name="visit_remainder_notification_text">Tienes una visita a las %1$s con %2$s</string>
 </resources>

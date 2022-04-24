@@ -97,7 +97,7 @@ class AuthenticationClient @Inject constructor() {
 @Singleton
 class APIClient @Inject constructor() {
     private val httpClient = HttpClient(CIO) {
-        // expectSuccess = true
+        expectSuccess = true
 
         install(ContentNegotiation) { json() }
 

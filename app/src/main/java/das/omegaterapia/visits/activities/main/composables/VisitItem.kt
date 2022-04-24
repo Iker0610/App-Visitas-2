@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,6 +39,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.NotificationAdd
 import androidx.compose.material.icons.filled.PhoneInTalk
 import androidx.compose.material.icons.filled.PinDrop
 import androidx.compose.material.icons.filled.Star
@@ -290,6 +292,7 @@ fun SwipeableVisitCardItem(
     //-----------   Utility variables   ------------//
 
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
 
     /*------------------------------------------------
@@ -361,15 +364,15 @@ fun SwipeableVisitCardItem(
                 ) {
                     //--------------   Edit Section   --------------//
 
-                    CenteredRow(
-                        horizontalArrangement = Arrangement.Start,
+                    Column(
+                        verticalArrangement = Arrangement.SpaceEvenly,
                         modifier = Modifier
                             .fillMaxHeight()
                             .fillMaxWidth(0.5f)
                             .background(MaterialTheme.colors.secondary
                                 .copy(alpha = 0.80f)
                                 .compositeOver(MaterialTheme.colors.surface))
-                            .padding(start = 32.dp)
+                            .padding(start = 32.dp, top = 8.dp, bottom = 8.dp)
                     ) {
                         IconButton(onClick = {
                             scope.launch {
@@ -379,6 +382,16 @@ fun SwipeableVisitCardItem(
                             }
                         }) {
                             Icon(Icons.Filled.Edit, contentDescription = null)
+                        }
+
+                        IconButton(onClick = {
+                            scope.launch {
+                                delay(250)
+                                swipeableState.animateTo(targetValue = 0)
+                                Toast.makeText(context, "Alarm set.", Toast.LENGTH_SHORT).show()
+                            }
+                        }) {
+                            Icon(Icons.Filled.NotificationAdd, contentDescription = null)
                         }
                     }
 

@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Omegaterapia Visits</string>
-    <string name="auth_channel_name">Authorization Channel</string>
+    <string name="auth_channel_name">Authorization</string>
     <string name="auth_channel_description">Notification channel for authorization events.</string>
     <string name="fab_icon_description">Add new visit card</string>
     <string name="save_json_section_title">Save today\'s visits as JSON</string>
@@ -98,7 +98,7 @@
     <string name="saved_credentials_not_longer_valid_dialog_text">The previus logged user\'s credentials are not longer valid. This may be because the user does not longer exist or due to a password change.</string>
     <string name="saved_credentials_not_longer_valid_dialog_solution_text">In order to continue you must logging again with the username and password.</string>
     <string name="processing">Processing</string>
-    <string name="corporation_channel_name">Omegaterapia Channel</string>
+    <string name="corporation_channel_name">Omegaterapia Notifications</string>
     <string name="corporation_channel_description">Notification channel for Omegaterapia employees.</string>
     <string name="profile_not_taken_toast_msg">No picture taken.</string>
     <string name="visit_widget_description">Widget to show today\'s visits.</string>
@@ -106,4 +106,9 @@
     <string name="visits_map_screen_title">Today\'s Visits\' Map</string>
     <string name="widget_title_no_user">Today\'s Visits</string>
     <string name="widget_no_user_content">You haven\'t logged yet.</string>
+    <string name="visit_alarm_channel_name">Visit Remainders</string>
+    <string name="visit_alarm_channel_description">Channel for user selected visits\' remainder notifications.</string>
+    <string name="work_chennel_group_name">Work</string>
+    <string name="visit_remainder_notification_title">Remainder: Visit at %1$s</string>
+    <string name="visit_remainder_notification_text">You have a visit at %1$s with %2$s.</string>
 </resources>

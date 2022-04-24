@@ -2,12 +2,13 @@ package das.omegaterapia.visits
 
 import android.app.Application
 import android.app.NotificationChannel
+import android.app.NotificationChannelGroup
 import android.app.NotificationManager
 import dagger.hilt.android.HiltAndroidApp
 
 
 /*******************************************************************************
- ****                        Custom Aplication Class                        ****
+ ****                        Custom Application Class                       ****
  *******************************************************************************/
 
 /*
@@ -44,10 +45,35 @@ class OmegaterapiaVisitsApp : Application() {
             NotificationChannel(NotificationChannelID.CORPORATION_CHANNEL.name, corporationChannelName, NotificationManager.IMPORTANCE_HIGH)
         corporationChannel.description = corporationChannelDescription
 
-        // Register the channel with the system
+
+        // Create the Authentication Notification Channel
+        val visitAlarmChannelName = getString(R.string.visit_alarm_channel_name)
+        val visitAlarmChannelDescription = getString(R.string.visit_alarm_channel_description)
+
+        val visitAlarmChannelChannel =
+            NotificationChannel(NotificationChannelID.VISIT_ALARM_CHANNEL.name, visitAlarmChannelName, NotificationManager.IMPORTANCE_HIGH)
+        visitAlarmChannelChannel.description = visitAlarmChannelDescription
+
+
+        // Get notification manager
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+        // Create the notification group
+        val workRelatedChannelGroupName = getString(R.string.work_chennel_group_name)
+        val workRelatedChannelGroup =
+            NotificationChannelGroup(NotificationChannelID.WORK_RELATED_NOTIFICATION_GROUP.name, workRelatedChannelGroupName)
+
+        notificationManager.createNotificationChannelGroup(workRelatedChannelGroup)
+
+        // Add channels to group
+        corporationChannel.group = NotificationChannelID.WORK_RELATED_NOTIFICATION_GROUP.name
+        visitAlarmChannelChannel.group = NotificationChannelID.WORK_RELATED_NOTIFICATION_GROUP.name
+
+
+        // Register the channels with the system
         notificationManager.createNotificationChannel(authChannel)
         notificationManager.createNotificationChannel(corporationChannel)
+        notificationManager.createNotificationChannel(visitAlarmChannelChannel)
     }
 }
 
@@ -65,10 +91,13 @@ It uses an enum class what gives better readability over the code, and avoids ID
 
 enum class NotificationChannelID {
     AUTH_CHANNEL,
-    CORPORATION_CHANNEL
+    CORPORATION_CHANNEL,
+    VISIT_ALARM_CHANNEL,
+    WORK_RELATED_NOTIFICATION_GROUP
 }
 
 enum class NotificationID(val id: Int) {
     USER_CREATED(0),
-    CORPORATION_NOTIFICATION(1)
+    CORPORATION_NOTIFICATION(1),
+    VISIT_ALARM(2)
 }
