@@ -31,7 +31,7 @@ class VisitAlarmRepository @Inject constructor(private val visitAlarmDao: VisitA
         }
     }
 
-    fun getAllAlarms(): Flow<List<String>> = visitAlarmDao.getAllAlarms().map { it.map(VisitAlarmEntity::visitId) }
-
+    fun getAllAlarmsAsSet(): Flow<Set<String>> = getAllAlarms().map(List<String>::toSet)
+    private fun getAllAlarms(): Flow<List<String>> = visitAlarmDao.getAllAlarms().map { it.map(VisitAlarmEntity::visitId) }
     fun getVisitCardsWithAlarms(): Flow<List<VisitCard>> = visitAlarmDao.getVisitCardsByIds(runBlocking { return@runBlocking getAllAlarms().first() })
 }

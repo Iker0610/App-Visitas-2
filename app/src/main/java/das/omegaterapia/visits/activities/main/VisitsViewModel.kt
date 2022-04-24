@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import das.omegaterapia.visits.model.entities.VisitCard
 import das.omegaterapia.visits.model.entities.VisitId
 import das.omegaterapia.visits.model.repositories.IVisitsRepository
+import das.omegaterapia.visits.model.repositories.VisitAlarmRepository
 import das.omegaterapia.visits.preferences.IUserPreferences
 import das.omegaterapia.visits.utils.TemporalConverter
 import kotlinx.coroutines.Dispatchers
@@ -31,6 +32,7 @@ import javax.inject.Inject
 class VisitsViewModel @Inject constructor(
     private val visitsRepository: IVisitsRepository,
     private val preferencesRepository: IUserPreferences,
+    private val alarmRepository: VisitAlarmRepository,
 
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -53,6 +55,8 @@ class VisitsViewModel @Inject constructor(
      *************************************************/
 
     val currentUser = savedStateHandle.get("LOGGED_USERNAME") as? String ?: ""
+
+    val currentRemainders = alarmRepository.getAllAlarmsAsSet()
 
     val allVisits = visitsRepository.getUsersVisits(currentUser)
         // Edit the flow to group list items by date with the user selected grouping
@@ -95,7 +99,9 @@ class VisitsViewModel @Inject constructor(
 
     suspend fun addVisitCard(visitCard: VisitCard) = visitsRepository.addVisitCard(visitCard.also { it.user = currentUser })
 
-    suspend fun updateVisitCard(visitCard: VisitCard) = visitsRepository.updateVisitCard(visitCard)
+    suspend fun updateVisitCard(visitCard: VisitCard): Boolean {
+        return visitsRepository.updateVisitCard(visitCard)
+    }
 
     fun deleteVisitCard(visitId: VisitId) = viewModelScope.launch(Dispatchers.IO) { visitsRepository.deleteVisitCard(visitId) }
 

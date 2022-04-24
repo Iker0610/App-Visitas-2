@@ -66,6 +66,8 @@ import das.omegaterapia.visits.activities.main.screens.visitlists.AllVisitsScree
 import das.omegaterapia.visits.activities.main.screens.visitlists.TodaysVisitsScreen
 import das.omegaterapia.visits.activities.main.screens.visitlists.VIPVisitsScreen
 import das.omegaterapia.visits.model.entities.VisitCard
+import das.omegaterapia.visits.model.entities.VisitId
+import das.omegaterapia.visits.services.VisitAlarm
 import das.omegaterapia.visits.ui.components.generic.CenteredColumn
 import das.omegaterapia.visits.ui.components.generic.DrawerButton
 import das.omegaterapia.visits.ui.components.generic.NavRailIcon
@@ -77,6 +79,7 @@ import das.omegaterapia.visits.utils.WindowSize
 import das.omegaterapia.visits.utils.WindowSizeFormat
 import das.omegaterapia.visits.utils.rememberWindowSizeClass
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 
@@ -135,7 +138,7 @@ private fun MainActivityScreen(
      *************************************************/
 
     //-----------   Utility variables   ------------//
-
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
 
@@ -206,6 +209,12 @@ private fun MainActivityScreen(
     val onEditVisit: (VisitCard) -> Unit = {
         visitViewModel.currentToEditVisit = it
         navController.navigate(MainActivityScreens.EditVisit.route) { launchSingleTop = true }
+    }
+
+    val onDeleteVisit: (VisitId) -> Unit = {
+        visitViewModel.deleteVisitCard(it)
+
+        // TODO ELIMINAR ALERTA
     }
 
     // Navigate to the current user's account page. (Passing the current user as a parameter in the route)
@@ -447,6 +456,7 @@ private fun MainActivityScreen(
                         TodaysVisitsScreen(
                             visitViewModel = visitViewModel,
                             onItemEdit = onEditVisit,
+                            onItemDelete = onDeleteVisit,
                             onScrollStateChange = { isScrolling = it },
                             paddingAtBottom = enableBottomNavigation
                         )
@@ -462,6 +472,7 @@ private fun MainActivityScreen(
                         AllVisitsScreen(
                             visitViewModel = visitViewModel,
                             onItemEdit = onEditVisit,
+                            onItemDelete = onDeleteVisit,
                             onScrollStateChange = { isScrolling = it },
                             paddingAtBottom = enableBottomNavigation
                         )
@@ -477,6 +488,7 @@ private fun MainActivityScreen(
                         VIPVisitsScreen(
                             visitViewModel = visitViewModel,
                             onItemEdit = onEditVisit,
+                            onItemDelete = onDeleteVisit,
                             onScrollStateChange = { isScrolling = it },
                             paddingAtBottom = enableBottomNavigation
                         )
@@ -610,7 +622,13 @@ private fun MainActivityScreen(
                             EditVisitScreen(
                                 title = MainActivityScreens.EditVisit.title(LocalContext.current),
                                 visitCard = visitViewModel.currentToEditVisit!!,
-                                onEditVisitCard = visitViewModel::updateVisitCard,
+                                onEditVisitCard = {
+                                    visitViewModel.updateVisitCard(it).also { updated ->
+                                        if (updated && it.id in visitViewModel.currentRemainders.first()) {
+                                            VisitAlarm.addVisitAlarm(context, it)
+                                        }
+                                    }
+                                },
                                 onBackPressed = {
                                     visitViewModel.currentToEditVisit = null // Reset currentToEditVisit on exit
                                     navigateBack()

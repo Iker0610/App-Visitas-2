@@ -46,8 +46,8 @@ import das.omegaterapia.visits.ui.theme.getButtonShape
 fun TodaysVisitsScreen(
     visitViewModel: VisitsViewModel,
     modifier: Modifier = Modifier,
-    onItemEdit: (VisitCard) -> Unit = visitViewModel::currentToEditVisit::set,
-    onItemDelete: (VisitId) -> Unit = { visitViewModel.deleteVisitCard(it) },
+    onItemEdit: (VisitCard) -> Unit,
+    onItemDelete: (VisitId) -> Unit,
     lazyListState: LazyListState = rememberLazyListState(),
     onScrollStateChange: (Boolean) -> Unit = {},
     paddingAtBottom: Boolean = false,
