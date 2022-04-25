@@ -66,7 +66,7 @@ fun OutlinedDateTimeField(
         modifier = modifier.onFocusChanged {
             // If the field is focused open the picker dialog
             if (it.isFocused) {
-                openDateTimePickerDialog(context, requireFutureDateTime, onDismissAction = { focusManager.clearFocus() }) { dateTime ->
+                openDateTimePickerDialog(context, date, requireFutureDateTime, onDismissAction = { focusManager.clearFocus() }) { dateTime ->
                     onDateTimeSelected(dateTime)
                     // Once the user finishes their selection clear the focus from this field
                     focusManager.clearFocus()

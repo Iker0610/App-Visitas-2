@@ -6,6 +6,7 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.ModalDialog
 import com.afollestad.materialdialogs.datetime.dateTimePicker
 import java.time.ZonedDateTime
+import java.util.*
 
 /**
  * Custom [DialogBehavior] that allows to pass an onDismissAction callback.
@@ -29,12 +30,14 @@ class DateTimeDialogBehavior(val onDismissAction: () -> Unit) : DialogBehavior b
  */
 fun openDateTimePickerDialog(
     context: Context,
+    currentDate: ZonedDateTime = ZonedDateTime.now(),
     requireFutureDateTime: Boolean = false,
     onDismissAction: () -> Unit = {},
     onDateTimeSelected: (ZonedDateTime) -> Unit,
 ) {
+    val currentDateCalendar = GregorianCalendar.from(currentDate)
     MaterialDialog(context, DateTimeDialogBehavior(onDismissAction)).show {
-        dateTimePicker(requireFutureDateTime = requireFutureDateTime) { _, dateTime ->
+        dateTimePicker(currentDateTime = currentDateCalendar, requireFutureDateTime = requireFutureDateTime) { _, dateTime ->
             onDateTimeSelected(ZonedDateTime.ofInstant(dateTime.toInstant(), dateTime.timeZone.toZoneId()))
         }
     }
