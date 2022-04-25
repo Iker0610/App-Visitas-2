@@ -211,10 +211,11 @@ private fun MainActivityScreen(
         navController.navigate(MainActivityScreens.EditVisit.route) { launchSingleTop = true }
     }
 
+    // Delete the item and delete it's alarm if set
     val onDeleteVisit: (VisitId) -> Unit = {
         visitViewModel.deleteVisitCard(it)
 
-        // TODO ELIMINAR ALERTA
+        // TODO ELIMINAR ALERTA REAL Y DE LA BASE DE DATOS
     }
 
     // Navigate to the current user's account page. (Passing the current user as a parameter in the route)

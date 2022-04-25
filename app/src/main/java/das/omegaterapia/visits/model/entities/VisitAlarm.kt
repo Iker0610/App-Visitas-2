@@ -16,6 +16,6 @@ import androidx.room.PrimaryKey
             onDelete = ForeignKey.CASCADE)
     ]
 )
-data class VisitAlarmEntity(
+data class VisitAlarm(
     @PrimaryKey val visitId: String,
 )

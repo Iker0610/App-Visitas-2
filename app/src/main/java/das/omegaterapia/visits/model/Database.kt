@@ -8,7 +8,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import das.omegaterapia.visits.model.dao.VisitAlarmDao
 import das.omegaterapia.visits.model.dao.VisitsDao
 import das.omegaterapia.visits.model.entities.Client
-import das.omegaterapia.visits.model.entities.VisitAlarmEntity
+import das.omegaterapia.visits.model.entities.VisitAlarm
 import das.omegaterapia.visits.model.entities.VisitData
 
 /**
@@ -22,7 +22,7 @@ import das.omegaterapia.visits.model.entities.VisitData
  */
 @Database(
     version = 3,
-    entities = [VisitData::class, Client::class, VisitAlarmEntity::class],
+    entities = [VisitData::class, Client::class, VisitAlarm::class],
 )
 @TypeConverters(Converters::class)
 abstract class OmegaterapiaVisitsDatabase : RoomDatabase() {
@@ -34,9 +34,10 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL(
             """CREATE TABLE `VisitAlarm` (
-                |`visitId` VARCHAR, 
-                |PRIMARY KEY(`id`), 
+                |`visitId` TEXT NOT NULL, 
+                |PRIMARY KEY(`visitId`), 
                 |FOREIGN KEY (visitId) REFERENCES VisitData(id)
+                |ON DELETE CASCADE
                 |)""".trimMargin()
         )
     }

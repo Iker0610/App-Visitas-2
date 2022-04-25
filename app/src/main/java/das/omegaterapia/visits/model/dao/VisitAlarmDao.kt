@@ -5,7 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
-import das.omegaterapia.visits.model.entities.VisitAlarmEntity
+import das.omegaterapia.visits.model.entities.VisitAlarm
 import das.omegaterapia.visits.model.entities.VisitCard
 import kotlinx.coroutines.flow.Flow
 
@@ -13,14 +13,14 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface VisitAlarmDao {
     @Insert
-    suspend fun addAlarm(alarm: VisitAlarmEntity)
+    suspend fun addAlarm(alarm: VisitAlarm)
 
     @Delete
-    suspend fun removeAlarm(alarm: VisitAlarmEntity)
+    suspend fun removeAlarm(alarm: VisitAlarm)
 
     @Transaction
-    @Query("SELECT * FROM VisitAlarmEntity")
-    fun getAllAlarms(): Flow<List<VisitAlarmEntity>>
+    @Query("SELECT * FROM VisitAlarm")
+    fun getAllAlarms(): Flow<List<VisitAlarm>>
 
     @Query("SELECT * FROM VisitData WHERE id = :id")
     suspend fun getVisitCardById(id: String): VisitCard
