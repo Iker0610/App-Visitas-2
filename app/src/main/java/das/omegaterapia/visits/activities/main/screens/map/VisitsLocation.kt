@@ -25,9 +25,11 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.rememberCameraPositionState
 import das.omegaterapia.visits.R
 import das.omegaterapia.visits.activities.main.VisitsViewModel
+import das.omegaterapia.visits.model.entities.VisitCard
 import das.omegaterapia.visits.ui.components.navigation.BackArrowTopBar
 import das.omegaterapia.visits.utils.bitmapDescriptorFromVector
 import das.omegaterapia.visits.utils.getLatLngFromAddress
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 
@@ -48,14 +50,9 @@ fun VisitsMapScreen(
         derivedStateOf {
             visits.mapNotNull { visit ->
                 val location = getLatLngFromAddress(geocoder, visit.client.direction.toString())
-                if (location != null) {
-                    VisitInMap(
-                        location = location,
-                        clientName = visit.client.toString(),
-                        hour = visit.visitDate.format(DateTimeFormatter.ofPattern("HH:mm")),
-                        address = visit.client.direction.address
-                    )
-                } else null
+
+                if (location != null) VisitInMap(location, visit)
+                else null
             }
         }
     }
@@ -107,7 +104,9 @@ private fun VisitsMap(
                 icon = bitmapDescriptorFromVector(
                     LocalContext.current,
                     R.drawable.ic_visit_location_bitonal,
-                    size = 120)
+                    size = 120,
+                    alpha = if (it.hasPassed) 125 else 255
+                )
             )
         }
     }
@@ -118,4 +117,13 @@ private data class VisitInMap(
     val clientName: String,
     val hour: String,
     val address: String,
-)
+    val hasPassed: Boolean,
+) {
+    constructor(location: LatLng, visit: VisitCard) : this(
+        location = location,
+        clientName = visit.client.toString(),
+        hour = visit.visitDate.format(DateTimeFormatter.ofPattern("HH:mm")),
+        address = visit.client.direction.address,
+        hasPassed = visit.visitDate < ZonedDateTime.now()
+    )
+}

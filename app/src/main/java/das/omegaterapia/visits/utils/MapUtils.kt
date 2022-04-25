@@ -26,9 +26,20 @@ fun getLatLngFromAddress(geocoder: Geocoder, address: String): LatLng? {
     return null
 }
 
-fun bitmapDescriptorFromVector(context: Context, @DrawableRes vectorResId: Int, color: Int? = null, size: Int? = null): BitmapDescriptor {
-    val vectorDrawable = ContextCompat.getDrawable(context, vectorResId)!!.also { if (color != null) setTint(it, color) }
-    vectorDrawable.setBounds(0, 0, size ?: vectorDrawable.intrinsicWidth, size ?: vectorDrawable.intrinsicHeight)
+fun bitmapDescriptorFromVector(
+    context: Context,
+    @DrawableRes vectorResId: Int,
+    size: Int? = null,
+    alpha: Int = 255,
+    color: Int? = null,
+): BitmapDescriptor {
+    val vectorDrawable = ContextCompat.getDrawable(context, vectorResId)!!.also {
+        if (color != null) setTint(it, color)
+        it.alpha = alpha
+
+        it.setBounds(0, 0, size ?: it.intrinsicWidth, size ?: it.intrinsicHeight)
+    }
+
     val bitmap = Bitmap.createBitmap(size ?: vectorDrawable.intrinsicWidth, size ?: vectorDrawable.intrinsicHeight, Bitmap.Config.RGBA_F16)
     vectorDrawable.draw(Canvas(bitmap))
     return BitmapDescriptorFactory.fromBitmap(bitmap)
