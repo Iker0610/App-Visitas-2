@@ -99,7 +99,7 @@ class VisitRemainder : BroadcastReceiver() {
 
             alarmManager.setAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,
-                visitCard.visitDate.minusMinutes(minutesBeforeVisit).toInstant().toEpochMilli(),
+                visitCard.visitDate.minusMinutes(minutesBeforeVisit).withSecond(0).toInstant().toEpochMilli(),
                 alarmIntent
             )
         }

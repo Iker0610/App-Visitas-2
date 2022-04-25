@@ -16,8 +16,11 @@ import das.omegaterapia.visits.services.RemainderStatus
 import das.omegaterapia.visits.services.VisitRemainder.Companion.minutesBeforeVisit
 import das.omegaterapia.visits.utils.TemporalConverter
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -61,6 +64,7 @@ class VisitsViewModel @Inject constructor(
     val currentUser = savedStateHandle.get("LOGGED_USERNAME") as? String ?: ""
 
     private val allVisits = visitsRepository.getUsersVisits(currentUser)
+
     val groupedAllVisits = allVisits
         // Edit the flow to group list items by date with the user selected grouping
         .map { visitList -> getMultipleDayFormatter().groupDates(visitList, key = VisitCard::visitDate::get) }
@@ -75,19 +79,29 @@ class VisitsViewModel @Inject constructor(
         // Edit the flow to group list items by date with the user selected grouping
         .map { visitList -> getDayFormatter().groupDates(visitList, key = VisitCard::visitDate::get) }
 
-    // It should be null always except on Edit Visit Screen
-    var currentToEditVisit: VisitCard? by mutableStateOf(null)
+
+    private val refreshFlow: Flow<Unit> = flow {
+        while (true) {
+            emit(Unit)
+            delay(1000)
+        }
+    }
 
     private val currentRemainders = visitRemainderRepository.getAllAlarmsAsSet()
-    val visitsRemainderStatuses = allVisits.combine(currentRemainders) { visitList, currentRemainders ->
+
+    val visitsRemainderStatuses = combine(allVisits, currentRemainders, refreshFlow) { visitList, currentRemainders, _ ->
         visitList.associate { visit ->
             visit.id to when {
-                visit.visitDate.minusMinutes(minutesBeforeVisit) <= ZonedDateTime.now() -> RemainderStatus.UNAVAILABLE
+                visit.visitDate.minusMinutes(minutesBeforeVisit).withSecond(0) <= ZonedDateTime.now() -> RemainderStatus.UNAVAILABLE
                 visit.id in currentRemainders -> RemainderStatus.ON
                 else -> RemainderStatus.OFF
             }
         }
     }
+
+
+    // It should be null always except on Edit Visit Screen
+    var currentToEditVisit: VisitCard? by mutableStateOf(null)
 
 
     /*
