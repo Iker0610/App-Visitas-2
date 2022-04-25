@@ -11,6 +11,7 @@ import das.omegaterapia.visits.activities.main.VisitsViewModel
 import das.omegaterapia.visits.activities.main.composables.VisitList
 import das.omegaterapia.visits.model.entities.VisitCard
 import das.omegaterapia.visits.model.entities.VisitId
+import das.omegaterapia.visits.services.RemainderStatus
 
 
 /**
@@ -32,22 +33,26 @@ fun VIPVisitsScreen(
     modifier: Modifier = Modifier,
     onItemEdit: (VisitCard) -> Unit,
     onItemDelete: (VisitId) -> Unit,
+    onItemRemainder: (VisitCard, RemainderStatus) -> Unit,
     lazyListState: LazyListState = rememberLazyListState(),
     onScrollStateChange: (Boolean) -> Unit = {},
     paddingAtBottom: Boolean = false,
 ) {
     // Get the list to be shown
-    val groupedVisits by visitViewModel.vipVisits.collectAsState(emptyMap())
+    val groupedVisits by visitViewModel.groupedVipVisits.collectAsState(emptyMap())
+    val visitRemainderStatus by visitViewModel.visitsRemainderStatuses.collectAsState(emptyMap())
 
     /*------------------------------------------------
     |                 User Interface                 |
     ------------------------------------------------*/
     VisitList(
         groupedVisitCards = groupedVisits,
+        visitsRemainderStatuses = visitRemainderStatus,
         modifier = modifier.fillMaxSize(),
 
         onItemEdit = onItemEdit,
         onItemDelete = onItemDelete,
+        onItemRemainder = onItemRemainder,
 
         lazyListState = lazyListState,
         onScrollStateChange = onScrollStateChange,

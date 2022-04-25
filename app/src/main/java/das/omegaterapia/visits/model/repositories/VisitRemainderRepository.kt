@@ -12,7 +12,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class VisitAlarmRepository @Inject constructor(private val visitAlarmDao: VisitAlarmDao) {
+class VisitRemainderRepository @Inject constructor(private val visitAlarmDao: VisitAlarmDao) {
     suspend fun addAlarm(alarmVisitId: String): Boolean {
         return try {
             visitAlarmDao.addAlarm(VisitAlarm(alarmVisitId))

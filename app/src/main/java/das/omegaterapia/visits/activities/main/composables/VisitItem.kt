@@ -4,7 +4,6 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -39,7 +38,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.NotificationAdd
 import androidx.compose.material.icons.filled.PhoneInTalk
 import androidx.compose.material.icons.filled.PinDrop
 import androidx.compose.material.icons.filled.Star
@@ -67,6 +65,7 @@ import androidx.compose.ui.unit.dp
 import das.omegaterapia.visits.R
 import das.omegaterapia.visits.data.visitList
 import das.omegaterapia.visits.model.entities.VisitCard
+import das.omegaterapia.visits.services.RemainderStatus
 import das.omegaterapia.visits.ui.components.form.TextIconButton
 import das.omegaterapia.visits.ui.components.generic.CenteredColumn
 import das.omegaterapia.visits.ui.components.generic.CenteredRow
@@ -280,9 +279,11 @@ fun SwipeableVisitCardItem(
     elevation: Dp = 4.dp,
     isExpanded: Boolean = false,
     canBeSwipedToSide: Boolean = true,
+    remainderStatus: RemainderStatus = RemainderStatus.UNAVAILABLE,
     onSwipe: (VisitCard) -> Unit = {},
     onClick: (VisitCard) -> Unit = {},
     onEdit: (VisitCard) -> Unit = {},
+    onRemainder: (VisitCard, RemainderStatus) -> Unit = { _, _ -> },
     onDelete: (VisitCard) -> Unit = {},
 ) {
     /*************************************************
@@ -374,6 +375,8 @@ fun SwipeableVisitCardItem(
                                 .compositeOver(MaterialTheme.colors.surface))
                             .padding(start = 32.dp, top = 8.dp, bottom = 8.dp)
                     ) {
+
+                        // Edit Button
                         IconButton(onClick = {
                             scope.launch {
                                 delay(250)
@@ -384,14 +387,17 @@ fun SwipeableVisitCardItem(
                             Icon(Icons.Filled.Edit, contentDescription = null)
                         }
 
-                        IconButton(onClick = {
-                            scope.launch {
-                                delay(250)
-                                swipeableState.animateTo(targetValue = 0)
-                                Toast.makeText(context, "Alarm set.", Toast.LENGTH_SHORT).show()
-                            }
-                        }) {
-                            Icon(Icons.Filled.NotificationAdd, contentDescription = null)
+                        // Remainder Button
+                        IconButton(
+                            enabled = remainderStatus != RemainderStatus.UNAVAILABLE,
+                            onClick = {
+                                scope.launch {
+                                    delay(250)
+                                    swipeableState.animateTo(targetValue = 0)
+                                    onRemainder(visitCard, remainderStatus)
+                                }
+                            }) {
+                            Icon(remainderStatus.icon, contentDescription = null)
                         }
                     }
 

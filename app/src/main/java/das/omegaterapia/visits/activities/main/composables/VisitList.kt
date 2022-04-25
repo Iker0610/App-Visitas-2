@@ -33,6 +33,7 @@ import das.omegaterapia.visits.R
 import das.omegaterapia.visits.data.visitList
 import das.omegaterapia.visits.model.entities.VisitCard
 import das.omegaterapia.visits.model.entities.VisitId
+import das.omegaterapia.visits.services.RemainderStatus
 import das.omegaterapia.visits.ui.theme.OmegaterapiaTheme
 import das.omegaterapia.visits.ui.theme.getButtonShape
 
@@ -54,9 +55,11 @@ import das.omegaterapia.visits.ui.theme.getButtonShape
 @Composable
 fun VisitList(
     groupedVisitCards: Map<String, List<VisitCard>>,
+    visitsRemainderStatuses: Map<String, RemainderStatus>,
     modifier: Modifier = Modifier,
     onItemEdit: (VisitCard) -> Unit = {},
     onItemDelete: (VisitId) -> Unit = {},
+    onItemRemainder: (VisitCard, RemainderStatus) -> Unit = { _, _ -> },
     lazyListState: LazyListState = rememberLazyListState(),
     onScrollStateChange: (Boolean) -> Unit = {},
     paddingAtBottom: Boolean = false,
@@ -135,10 +138,11 @@ fun VisitList(
                     visitCard = visitCard,
                     isExpanded = visitCard.id == expandedVisitCardId,
                     canBeSwipedToSide = visitCard.id == swipedVisitCardId || swipedVisitCardId == null,
+                    remainderStatus = visitsRemainderStatuses[visitCard.id] ?: RemainderStatus.UNAVAILABLE,
 
                     onEdit = onItemEdit,
                     onDelete = { toDeleteItemId = visitCard.id },
-
+                    onRemainder = onItemRemainder,
 
                     /*
                      * If another item is already extended or swiped unextend/unswipe them
@@ -213,7 +217,7 @@ fun VisitListPreview() {
     )
     OmegaterapiaTheme {
         Surface {
-            VisitList(groupedVisitCards = groupedVisits)
+            VisitList(groupedVisitCards = groupedVisits, emptyMap())
         }
     }
 }

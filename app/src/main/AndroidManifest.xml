@@ -85,7 +85,7 @@
         </receiver>
 
         <receiver
-            android:name=".services.VisitAlarm"
+            android:name=".services.VisitRemainder"
             android:enabled="true"
             android:exported="false">
             <intent-filter>

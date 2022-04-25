@@ -10,16 +10,20 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import das.omegaterapia.visits.model.entities.VisitCard
 import das.omegaterapia.visits.model.entities.VisitId
 import das.omegaterapia.visits.model.repositories.IVisitsRepository
-import das.omegaterapia.visits.model.repositories.VisitAlarmRepository
+import das.omegaterapia.visits.model.repositories.VisitRemainderRepository
 import das.omegaterapia.visits.preferences.IUserPreferences
+import das.omegaterapia.visits.services.RemainderStatus
+import das.omegaterapia.visits.services.VisitRemainder.Companion.minutesBeforeVisit
 import das.omegaterapia.visits.utils.TemporalConverter
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
@@ -32,7 +36,7 @@ import javax.inject.Inject
 class VisitsViewModel @Inject constructor(
     private val visitsRepository: IVisitsRepository,
     private val preferencesRepository: IUserPreferences,
-    private val alarmRepository: VisitAlarmRepository,
+    private val visitRemainderRepository: VisitRemainderRepository,
 
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -56,13 +60,12 @@ class VisitsViewModel @Inject constructor(
 
     val currentUser = savedStateHandle.get("LOGGED_USERNAME") as? String ?: ""
 
-    val currentRemainders = alarmRepository.getAllAlarmsAsSet()
-
-    val allVisits = visitsRepository.getUsersVisits(currentUser)
+    private val allVisits = visitsRepository.getUsersVisits(currentUser)
+    val groupedAllVisits = allVisits
         // Edit the flow to group list items by date with the user selected grouping
         .map { visitList -> getMultipleDayFormatter().groupDates(visitList, key = VisitCard::visitDate::get) }
 
-    val vipVisits = visitsRepository.getUsersVIPVisits(currentUser)
+    val groupedVipVisits = visitsRepository.getUsersVIPVisits(currentUser)
         // Edit the flow to group list items by date with the user selected grouping
         .map { visitList -> getMultipleDayFormatter().groupDates(visitList, key = VisitCard::visitDate::get) }
 
@@ -74,6 +77,17 @@ class VisitsViewModel @Inject constructor(
 
     // It should be null always except on Edit Visit Screen
     var currentToEditVisit: VisitCard? by mutableStateOf(null)
+
+    private val currentRemainders = visitRemainderRepository.getAllAlarmsAsSet()
+    val visitsRemainderStatuses = allVisits.combine(currentRemainders) { visitList, currentRemainders ->
+        visitList.associate { visit ->
+            visit.id to when {
+                visit.visitDate.minusMinutes(minutesBeforeVisit) <= ZonedDateTime.now() -> RemainderStatus.UNAVAILABLE
+                visit.id in currentRemainders -> RemainderStatus.ON
+                else -> RemainderStatus.OFF
+            }
+        }
+    }
 
 
     /*
@@ -103,12 +117,20 @@ class VisitsViewModel @Inject constructor(
         return visitsRepository.updateVisitCard(visitCard)
     }
 
-    fun deleteVisitCard(visitId: VisitId) = viewModelScope.launch(Dispatchers.IO) { visitsRepository.deleteVisitCard(visitId) }
+    fun deleteVisitCard(visitId: VisitId) = viewModelScope.launch(Dispatchers.IO) {
+        visitsRepository.deleteVisitCard(visitId)
+        if (visitsRemainderStatuses.first()[visitId.id] == RemainderStatus.ON) {
+            visitRemainderRepository.removeAlarm(visitId.id)
+        }
+    }
 
+    suspend fun addVisitRemainder(visitCard: VisitCard) = visitRemainderRepository.addAlarm(visitCard.id)
+    suspend fun removeVisitRemainder(visitCard: VisitCard) = visitRemainderRepository.removeAlarm(visitCard.id)
 
     /*************************************************
      **                    Utils                    **
      *************************************************/
+    suspend fun getVisitCard(visitId: String) = allVisits.first().asSequence().filter { it.id == visitId }.firstOrNull()
 
     fun todaysVisitsJson(): String {
         val json = Json { prettyPrint = true }

@@ -23,6 +23,7 @@ import das.omegaterapia.visits.activities.main.VisitsViewModel
 import das.omegaterapia.visits.activities.main.composables.VisitList
 import das.omegaterapia.visits.model.entities.VisitCard
 import das.omegaterapia.visits.model.entities.VisitId
+import das.omegaterapia.visits.services.RemainderStatus
 import das.omegaterapia.visits.ui.theme.getButtonShape
 
 
@@ -48,6 +49,7 @@ fun TodaysVisitsScreen(
     modifier: Modifier = Modifier,
     onItemEdit: (VisitCard) -> Unit,
     onItemDelete: (VisitId) -> Unit,
+    onItemRemainder: (VisitCard, RemainderStatus) -> Unit,
     lazyListState: LazyListState = rememberLazyListState(),
     onScrollStateChange: (Boolean) -> Unit = {},
     paddingAtBottom: Boolean = false,
@@ -62,6 +64,8 @@ fun TodaysVisitsScreen(
 
     //----------   ViewModel and State   -----------//
     val groupedVisits by visitViewModel.groupedTodaysVisits.collectAsState(emptyMap())
+    val visitRemainderStatus by visitViewModel.visitsRemainderStatuses.collectAsState(emptyMap())
+
     var showExitAlertDialog by rememberSaveable { mutableStateOf(false) }
 
 
@@ -102,10 +106,12 @@ fun TodaysVisitsScreen(
     ------------------------------------------------*/
     VisitList(
         groupedVisitCards = groupedVisits,
+        visitsRemainderStatuses = visitRemainderStatus,
         modifier = modifier.fillMaxSize(),
 
         onItemEdit = onItemEdit,
         onItemDelete = onItemDelete,
+        onItemRemainder = onItemRemainder,
 
         lazyListState = lazyListState,
         onScrollStateChange = onScrollStateChange,

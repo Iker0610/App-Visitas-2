@@ -3,6 +3,7 @@ package das.omegaterapia.visits.activities.main
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -67,7 +68,8 @@ import das.omegaterapia.visits.activities.main.screens.visitlists.TodaysVisitsSc
 import das.omegaterapia.visits.activities.main.screens.visitlists.VIPVisitsScreen
 import das.omegaterapia.visits.model.entities.VisitCard
 import das.omegaterapia.visits.model.entities.VisitId
-import das.omegaterapia.visits.services.VisitAlarm
+import das.omegaterapia.visits.services.RemainderStatus
+import das.omegaterapia.visits.services.VisitRemainder
 import das.omegaterapia.visits.ui.components.generic.CenteredColumn
 import das.omegaterapia.visits.ui.components.generic.DrawerButton
 import das.omegaterapia.visits.ui.components.generic.NavRailIcon
@@ -212,10 +214,40 @@ private fun MainActivityScreen(
     }
 
     // Delete the item and delete it's alarm if set
-    val onDeleteVisit: (VisitId) -> Unit = {
-        visitViewModel.deleteVisitCard(it)
+    val onDeleteVisit: (VisitId) -> Unit = { id ->
+        scope.launch {
+            val visitCard = visitViewModel.getVisitCard(id.id)
+            visitViewModel.deleteVisitCard(id)
 
-        // TODO ELIMINAR ALERTA REAL Y DE LA BASE DE DATOS
+            if (visitCard != null) {
+                VisitRemainder.removeVisitRemainder(context, visitCard)
+            } else Log.d("REMAINDERS", "Deleted null object.")
+        }
+    }
+
+    // Set or unset item alarm
+    val onItemRemainder: (VisitCard, RemainderStatus) -> Unit = { visit, remainderStatus ->
+        when (remainderStatus) {
+            RemainderStatus.UNAVAILABLE -> {
+                Log.d("REMAINDERS", "onItemRemainder when status is UNAVAILABLE")
+            }
+
+            RemainderStatus.OFF -> {
+                scope.launch(Dispatchers.IO) {
+                    VisitRemainder.addVisitRemainder(context, visit)
+                    visitViewModel.addVisitRemainder(visit)
+                }
+                Toast.makeText(context, "Remainder set.", Toast.LENGTH_SHORT).show()
+            }
+
+            RemainderStatus.ON -> {
+                scope.launch(Dispatchers.IO) {
+                    VisitRemainder.removeVisitRemainder(context, visit)
+                    visitViewModel.removeVisitRemainder(visit)
+                }
+                Toast.makeText(context, "Remainder removed.", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     // Navigate to the current user's account page. (Passing the current user as a parameter in the route)
@@ -458,6 +490,7 @@ private fun MainActivityScreen(
                             visitViewModel = visitViewModel,
                             onItemEdit = onEditVisit,
                             onItemDelete = onDeleteVisit,
+                            onItemRemainder = onItemRemainder,
                             onScrollStateChange = { isScrolling = it },
                             paddingAtBottom = enableBottomNavigation
                         )
@@ -474,6 +507,7 @@ private fun MainActivityScreen(
                             visitViewModel = visitViewModel,
                             onItemEdit = onEditVisit,
                             onItemDelete = onDeleteVisit,
+                            onItemRemainder = onItemRemainder,
                             onScrollStateChange = { isScrolling = it },
                             paddingAtBottom = enableBottomNavigation
                         )
@@ -490,6 +524,7 @@ private fun MainActivityScreen(
                             visitViewModel = visitViewModel,
                             onItemEdit = onEditVisit,
                             onItemDelete = onDeleteVisit,
+                            onItemRemainder = onItemRemainder,
                             onScrollStateChange = { isScrolling = it },
                             paddingAtBottom = enableBottomNavigation
                         )
@@ -625,8 +660,8 @@ private fun MainActivityScreen(
                                 visitCard = visitViewModel.currentToEditVisit!!,
                                 onEditVisitCard = {
                                     visitViewModel.updateVisitCard(it).also { updated ->
-                                        if (updated && it.id in visitViewModel.currentRemainders.first()) {
-                                            VisitAlarm.addVisitAlarm(context, it)
+                                        if (updated && visitViewModel.visitsRemainderStatuses.first()[it.id] == RemainderStatus.ON) {
+                                            VisitRemainder.addVisitRemainder(context, it)
                                         }
                                     }
                                 },

@@ -5,6 +5,11 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.NotificationsNone
+import androidx.compose.material.icons.filled.NotificationsOff
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import dagger.hilt.android.AndroidEntryPoint
@@ -13,7 +18,7 @@ import das.omegaterapia.visits.NotificationID
 import das.omegaterapia.visits.R
 import das.omegaterapia.visits.model.entities.CompactVisitData
 import das.omegaterapia.visits.model.entities.VisitCard
-import das.omegaterapia.visits.model.repositories.VisitAlarmRepository
+import das.omegaterapia.visits.model.repositories.VisitRemainderRepository
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -25,23 +30,23 @@ import javax.inject.Inject
 
 // TODO: Anotar
 @AndroidEntryPoint
-class VisitAlarm : BroadcastReceiver() {
+class VisitRemainder : BroadcastReceiver() {
 
     @Inject
-    lateinit var visitAlarmRepository: VisitAlarmRepository
+    lateinit var visitRemainderRepository: VisitRemainderRepository
 
 
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
             "android.intent.action.BOOT_COMPLETED" -> reloadAlarms(context)
-            launchAlarmAction -> launchVisitAlarmNotification(context, intent.getParcelableExtra("data")!!)
+            launchRemainderAction -> launchVisitRemainderNotification(context, intent.getParcelableExtra("data")!!)
         }
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    private fun launchVisitAlarmNotification(context: Context, visit: CompactVisitData) {
+    private fun launchVisitRemainderNotification(context: Context, visit: CompactVisitData) {
         // Delete alarm from database
-        GlobalScope.launch(Dispatchers.IO) { visitAlarmRepository.removeAlarm(visit.id) }
+        GlobalScope.launch(Dispatchers.IO) { visitRemainderRepository.removeAlarm(visit.id) }
 
         // Show user created notification
         val builder = NotificationCompat.Builder(context, NotificationChannelID.AUTH_CHANNEL.name)
@@ -58,42 +63,50 @@ class VisitAlarm : BroadcastReceiver() {
 
 
     private fun reloadAlarms(context: Context) {
-        val visitsWithAlarm = runBlocking { return@runBlocking visitAlarmRepository.getVisitCardsWithAlarms().first() }
-        visitsWithAlarm.map { addVisitAlarm(context, it) }
+        val visitsWithAlarm = runBlocking { return@runBlocking visitRemainderRepository.getVisitCardsWithAlarms().first() }
+        visitsWithAlarm.map { addVisitRemainder(context, it) }
     }
 
     companion object {
-        const val launchAlarmAction = "LAUNCH_VISIT_ALARM"
+        const val launchRemainderAction = "LAUNCH_VISIT_REMAINDER"
+        const val minutesBeforeVisit = 15L
 
-        fun addVisitAlarm(context: Context, visitCard: VisitCard) {
+        fun addVisitRemainder(context: Context, visitCard: VisitCard) {
             val reducedVisitData = CompactVisitData(visitCard)
 
-            val alarmIntent = Intent(context, VisitAlarm::class.java).let { intent ->
-                intent.action = launchAlarmAction
+            val alarmIntent = Intent(context, VisitRemainder::class.java).let { intent ->
+                intent.action = launchRemainderAction
                 intent.putExtra("data", reducedVisitData)
-                PendingIntent.getBroadcast(context, visitCard.intId, intent, 0)
+                PendingIntent.getBroadcast(context, visitCard.intId, intent, PendingIntent.FLAG_IMMUTABLE or 0)
             }
 
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
             alarmManager.set(
                 AlarmManager.RTC,
-                visitCard.visitDate.minusMinutes(15).toInstant().toEpochMilli(),
+                visitCard.visitDate.minusMinutes(minutesBeforeVisit).toInstant().toEpochMilli(),
                 alarmIntent
             )
         }
 
-        fun deleteVisitAlarm(context: Context, visitCard: VisitCard) {
+        fun removeVisitRemainder(context: Context, visitCard: VisitCard) {
             val reducedVisitData = CompactVisitData(visitCard)
 
-            Intent(context, VisitAlarm::class.java).let { intent ->
-                intent.action = launchAlarmAction
+            Intent(context, VisitRemainder::class.java).let { intent ->
+                intent.action = launchRemainderAction
                 intent.putExtra("data", reducedVisitData)
-                PendingIntent.getBroadcast(context, visitCard.intId, intent, PendingIntent.FLAG_NO_CREATE)
+                PendingIntent.getBroadcast(context, visitCard.intId, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_NO_CREATE)
             }?.let {
                 val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager
                 alarmManager?.cancel(it)
             }
         }
     }
+}
+
+
+enum class RemainderStatus(val icon: ImageVector) {
+    UNAVAILABLE(Icons.Filled.NotificationsOff),
+    ON(Icons.Filled.NotificationsActive),
+    OFF(Icons.Filled.NotificationsNone)
 }
