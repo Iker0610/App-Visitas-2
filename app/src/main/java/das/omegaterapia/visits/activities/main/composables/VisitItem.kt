@@ -293,7 +293,6 @@ fun SwipeableVisitCardItem(
     //-----------   Utility variables   ------------//
 
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
 
 
     /*------------------------------------------------
@@ -392,8 +391,6 @@ fun SwipeableVisitCardItem(
                             enabled = remainderStatus != RemainderStatus.UNAVAILABLE,
                             onClick = {
                                 scope.launch {
-                                    delay(250)
-                                    swipeableState.animateTo(targetValue = 0)
                                     onRemainder(visitCard, remainderStatus)
                                 }
                             }) {

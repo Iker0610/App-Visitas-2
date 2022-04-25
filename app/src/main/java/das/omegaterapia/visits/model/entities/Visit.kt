@@ -1,6 +1,5 @@
 package das.omegaterapia.visits.model.entities
 
-import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
@@ -9,7 +8,6 @@ import androidx.room.Ignore
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
-import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -136,7 +134,6 @@ data class VisitCard(
 
 
 // TODO DOCUMENTAR
-@Parcelize
 @Serializable
 data class CompactVisitData(
     val id: String,
@@ -146,7 +143,7 @@ data class CompactVisitData(
     val phoneNumber: String,
     val shortDirection: String,
     val fullDirection: String,
-) : Parcelable {
+) {
     constructor(visit: VisitCard) : this(
         id = visit.id,
         isVIP = visit.isVIP,

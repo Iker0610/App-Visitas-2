@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.NotificationsNone
@@ -25,6 +26,9 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 
@@ -39,12 +43,19 @@ class VisitRemainder : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
             "android.intent.action.BOOT_COMPLETED" -> reloadAlarms(context)
-            launchRemainderAction -> launchVisitRemainderNotification(context, intent.getParcelableExtra("data")!!)
+            launchRemainderAction -> {
+                Log.i("REMAINDER", "Received launch broadcast action.")
+                intent.getStringExtra("data")?.let { data ->
+                    launchVisitRemainderNotification(context, Json.decodeFromString(data))
+                }
+            }
         }
     }
 
     @OptIn(DelicateCoroutinesApi::class)
     private fun launchVisitRemainderNotification(context: Context, visit: CompactVisitData) {
+        Log.i("REMAINDER", "Launching remainder alarm.")
+
         // Delete alarm from database
         GlobalScope.launch(Dispatchers.IO) { visitRemainderRepository.removeAlarm(visit.id) }
 
@@ -63,6 +74,8 @@ class VisitRemainder : BroadcastReceiver() {
 
 
     private fun reloadAlarms(context: Context) {
+        Log.i("REMAINDER", "Reloading remainder alarms.")
+
         val visitsWithAlarm = runBlocking { return@runBlocking visitRemainderRepository.getVisitCardsWithAlarms().first() }
         visitsWithAlarm.map { addVisitRemainder(context, it) }
     }
@@ -72,31 +85,36 @@ class VisitRemainder : BroadcastReceiver() {
         const val minutesBeforeVisit = 15L
 
         fun addVisitRemainder(context: Context, visitCard: VisitCard) {
+            Log.i("REMAINDER", "Adding remainder alarm.")
+
             val reducedVisitData = CompactVisitData(visitCard)
 
             val alarmIntent = Intent(context, VisitRemainder::class.java).let { intent ->
                 intent.action = launchRemainderAction
-                intent.putExtra("data", reducedVisitData)
-                PendingIntent.getBroadcast(context, visitCard.intId, intent, PendingIntent.FLAG_IMMUTABLE or 0)
+                intent.putExtra("data", Json.encodeToString(reducedVisitData))
+                PendingIntent.getBroadcast(context, visitCard.intId, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
             }
 
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-            alarmManager.set(
-                AlarmManager.RTC,
+            alarmManager.setAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
                 visitCard.visitDate.minusMinutes(minutesBeforeVisit).toInstant().toEpochMilli(),
                 alarmIntent
             )
         }
 
         fun removeVisitRemainder(context: Context, visitCard: VisitCard) {
+            Log.i("REMAINDER", "Trying to remove remainder alarm.")
+
             val reducedVisitData = CompactVisitData(visitCard)
 
             Intent(context, VisitRemainder::class.java).let { intent ->
                 intent.action = launchRemainderAction
-                intent.putExtra("data", reducedVisitData)
+                intent.putExtra("data", Json.encodeToString(reducedVisitData))
                 PendingIntent.getBroadcast(context, visitCard.intId, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_NO_CREATE)
             }?.let {
+                Log.i("REMAINDER", "Removing remainder alarm.")
                 val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager
                 alarmManager?.cancel(it)
             }
