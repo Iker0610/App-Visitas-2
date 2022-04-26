@@ -89,11 +89,15 @@ class PreferencesRepository @Inject constructor(
     override suspend fun getLastLoggedUser(): AuthUser? {
         val encryptedData = context.dataStore.data.first()[PreferencesKeys.LAST_LOGGED_USER]
 
-
-        return if (encryptedData != null) {
-            val data = cipher.decryptData(CIPHER_KEY, encryptedData)
-            Json.decodeFromString(data)
-        } else null
+        return try {
+            if (encryptedData != null) {
+                val data = cipher.decryptData(CIPHER_KEY, encryptedData)
+                Json.decodeFromString(data)
+            } else null
+        } catch (e: IllegalArgumentException) {
+            e.printStackTrace()
+            null
+        }
     }
 
     // Set the last logged user on DataStore Preferences

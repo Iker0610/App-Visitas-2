@@ -22,9 +22,7 @@ interface VisitAlarmDao {
     @Query("SELECT * FROM VisitAlarm")
     fun getAllAlarms(): Flow<List<VisitAlarm>>
 
-    @Query("SELECT * FROM VisitData WHERE id = :id")
-    suspend fun getVisitCardById(id: String): VisitCard
-
+    @Transaction
     @Query("SELECT * FROM VisitData WHERE id IN (:idList)")
     fun getVisitCardsByIds(idList: List<String>): Flow<List<VisitCard>>
 }

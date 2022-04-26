@@ -132,11 +132,12 @@ fun AuthScreen(
                         onSuccessfulLogin(user)
                     } else {
                         Toast.makeText(context, "Error when logging new user.", Toast.LENGTH_LONG).show()
+                        authViewModel.backgroundBlockingTaskOnCourse = false
                         showGenericErrorDialog = true
                     }
                 } else {
-                    showSignInErrorDialog = authViewModel.signInUserExists
                     authViewModel.backgroundBlockingTaskOnCourse = false
+                    showSignInErrorDialog = authViewModel.signInUserExists
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -163,6 +164,7 @@ fun AuthScreen(
 
             } catch (e: Exception) {
                 e.printStackTrace()
+                authViewModel.backgroundBlockingTaskOnCourse = false
                 showGenericErrorDialog = true
             }
         }
