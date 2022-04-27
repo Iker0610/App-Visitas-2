@@ -65,8 +65,10 @@ class VisitsWidget : GlanceAppWidget() {
     override fun Content() {
         val context = LocalContext.current
         val prefs = currentState<Preferences>()
+
         val user = prefs[currentUserKey]
         val data: String? = prefs[todayVisitsDataKey]
+
         val visitList: List<CompactVisitData> = if (data != null) Json.decodeFromString(data) else emptyList()
 
         Column(

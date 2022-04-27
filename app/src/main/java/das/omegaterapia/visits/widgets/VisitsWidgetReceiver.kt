@@ -47,7 +47,7 @@ class VisitsWidgetReceiver : GlanceAppWidgetReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
 
-        Log.d("Widget", "onReceive Called")
+        Log.d("Widget", "onReceive Called; Action: ${intent.action}")
         if (intent.action == VisitsWidgetRefreshCallback.UPDATE_ACTION) {
             observeData(context)
         }
@@ -62,6 +62,8 @@ class VisitsWidgetReceiver : GlanceAppWidgetReceiver() {
             val visitData = if (currentUsername != null) {
                 visitsRepository.getUsersTodaysVisits(currentUsername).first().map(::CompactVisitData)
             } else emptyList()
+
+            Log.d("Widget", "Coroutine - Data-Length: ${visitData.size}")
 
             GlanceAppWidgetManager(context).getGlanceIds(VisitsWidget::class.java).forEach { glanceId ->
                 updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { pref ->

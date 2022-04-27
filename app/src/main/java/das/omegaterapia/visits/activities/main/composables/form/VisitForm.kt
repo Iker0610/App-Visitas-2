@@ -25,6 +25,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContactPhone
+import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.MapsHomeWork
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.People
@@ -112,6 +113,7 @@ fun VisitForm(
     //-----------------   States   -----------------//
 
     var showErrorDialog by rememberSaveable { mutableStateOf(false) }
+    var showPhoneNumberHelpDialog by rememberSaveable { mutableStateOf(false) }
     val editMode = initialVisitCard != null
 
 
@@ -159,6 +161,22 @@ fun VisitForm(
                 }
             )
         }
+    }
+
+    if (showPhoneNumberHelpDialog) {
+
+        // Customize dialog depending of whether we are creating a new item or editing an existing one
+
+        AlertDialog(
+            shape = RectangleShape,
+            text = { Text(text = stringResource(R.string.phone_number_field_help)) },
+            onDismissRequest = { showPhoneNumberHelpDialog = false },
+            confirmButton = {
+                TextButton(onClick = { showPhoneNumberHelpDialog = false },
+                    shape = getButtonShape()) { Text(text = stringResource(R.string.ok_button)) }
+            }
+        )
+
     }
 
 
@@ -302,7 +320,13 @@ fun VisitForm(
                 modifier = Modifier.fillMaxWidth(),
 
                 label = { Text(text = "${stringResource(R.string.visit_card_phone_label)}*") },
+                placeholder = { Text(text = "+00 000 000 000") },
                 leadingIcon = { Icon(Icons.Default.ContactPhone, null) },
+                trailingIcon = {
+                    IconButton(onClick = { showPhoneNumberHelpDialog = true }) {
+                        Icon(Icons.Filled.Help, contentDescription = null)
+                    }
+                },
 
                 value = visitFormViewModel.phoneText,
                 onValueChange = { if (canBePhoneNumber(it)) visitFormViewModel.phoneText = formatPhoneNumber(it) },

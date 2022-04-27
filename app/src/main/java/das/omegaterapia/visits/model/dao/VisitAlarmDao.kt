@@ -9,7 +9,9 @@ import das.omegaterapia.visits.model.entities.VisitAlarm
 import das.omegaterapia.visits.model.entities.VisitCard
 import kotlinx.coroutines.flow.Flow
 
-// TODO Anotar
+/**
+ * DAO defining the room database access API related to alarm management
+ */
 @Dao
 interface VisitAlarmDao {
     @Insert

@@ -111,4 +111,5 @@
     <string name="work_chennel_group_name">Work</string>
     <string name="visit_remainder_notification_title">Remainder: Visit at %1$s</string>
     <string name="visit_remainder_notification_text">You have a visit at %1$s with %2$s.</string>
+    <string name="phone_number_field_help">Phone number is required to have it\'s prefix ( + 00 ) if it is not from the same country as your device\'s.</string>
 </resources>

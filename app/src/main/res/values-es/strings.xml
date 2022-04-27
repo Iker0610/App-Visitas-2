@@ -112,4 +112,5 @@
     <string name="work_chennel_group_name">Trabajo</string>
     <string name="visit_remainder_notification_title">Recordatorio: Visita a las %1$s</string>
     <string name="visit_remainder_notification_text">Tienes una visita a las %1$s con %2$s</string>
+    <string name="phone_number_field_help">Se requiere que el número de teléfono indique también el prefijo (+ 00) si no es del mismo país que el indicado en la configuración del dispositivo.</string>
 </resources>

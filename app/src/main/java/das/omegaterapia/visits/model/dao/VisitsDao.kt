@@ -16,8 +16,6 @@ import kotlinx.coroutines.flow.Flow
 
 /**
  * DAO defining the room database access API related to Visit Card Data.
- *
- *
  */
 @Dao
 interface VisitsDao {

@@ -41,7 +41,7 @@ data class TokenInfo(
 /**
  * [MutableList] to save retrieves [BearerTokens]
  */
-val bearerTokenStorage = mutableListOf<BearerTokens>()
+private val bearerTokenStorage = mutableListOf<BearerTokens>()
 
 
 /**

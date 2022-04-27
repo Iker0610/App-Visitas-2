@@ -133,7 +133,12 @@ data class VisitCard(
 }
 
 
-// TODO DOCUMENTAR
+/**
+ * Reduced serializable class for [VisitCard]
+ *
+ * Used for cases where a serializable [VisitCard] is needed but not all data is relevant.
+ * For example: Widget and Remainder Notifications.
+ */
 @Serializable
 data class CompactVisitData(
     val id: String,
