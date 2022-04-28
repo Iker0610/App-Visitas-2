@@ -64,7 +64,7 @@ class LoginRepository @Inject constructor(
 
 
     /**
-     * Given an [AuthUser] tries to add the defined user to the database.
+     * Given an [authUser] tries to add the defined user to the database.
      * Returns true if the user has been created successfully and false otherwise.
      */
     override suspend fun createUser(authUser: AuthUser): Boolean {

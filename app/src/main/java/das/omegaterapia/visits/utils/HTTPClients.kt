@@ -2,7 +2,6 @@ package das.omegaterapia.visits.utils
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.util.Log
 import das.omegaterapia.visits.model.entities.AuthUser
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -22,9 +21,17 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 
+/*******************************************************************************
+ ****                               Exceptions                              ****
+ *******************************************************************************/
+
 class AuthenticationException : Exception()
 class UserExistsException : Exception()
 
+
+/*******************************************************************************
+ ****                         Response Data Classes                         ****
+ *******************************************************************************/
 
 /**
  * Data class that represents server response when an [accessToken] is request.
@@ -38,21 +45,40 @@ data class TokenInfo(
 )
 
 
+/*******************************************************************************
+ ****                          Bearer Token Storage                         ****
+ *******************************************************************************/
+
 /**
  * [MutableList] to save retrieves [BearerTokens]
  */
 private val bearerTokenStorage = mutableListOf<BearerTokens>()
 
 
+/*******************************************************************************
+ ****                              HTTP Clients                             ****
+ *******************************************************************************/
+
 /**
  * HTTP Client that makes petitions to the API to authenticate, retrieve access token and create users.
  */
 @Singleton
 class AuthenticationClient @Inject constructor() {
+
+
+    /*************************************************
+     **         Initialization and Installs         **
+     *************************************************/
+
     private val httpClient = HttpClient(CIO) {
-        install(ContentNegotiation) { json() }
+
+        // If return code is not a 2xx then throw an exception
         expectSuccess = true
 
+        // Install JSON handler (allows to receive and send JSON data)
+        install(ContentNegotiation) { json() }
+
+        // Handle non 2xx status responses
         HttpResponseValidator {
             handleResponseExceptionWithRequest { exception, _ ->
                 when {
@@ -66,6 +92,11 @@ class AuthenticationClient @Inject constructor() {
             }
         }
     }
+
+
+    /*************************************************
+     **                   Methods                   **
+     *************************************************/
 
     @Throws(AuthenticationException::class, Exception::class)
     suspend fun authenticate(user: AuthUser) {
@@ -89,6 +120,7 @@ class AuthenticationClient @Inject constructor() {
     }
 }
 
+
 /**
  * HTTP Client that makes authenticated petitions to REST API.
  *
@@ -96,17 +128,33 @@ class AuthenticationClient @Inject constructor() {
  */
 @Singleton
 class APIClient @Inject constructor() {
+
+    /*************************************************
+     **         Initialization and Installs         **
+     *************************************************/
+
     private val httpClient = HttpClient(CIO) {
+
+        // If return code is not a 2xx then throw an exception
         expectSuccess = true
 
+        // Install JSON handler (allows to receive and send JSON data)
         install(ContentNegotiation) { json() }
 
+        // Install Bearer Authentication Handler
         install(Auth) {
             bearer {
+
+                // Define where to get tokens from
                 loadTokens { bearerTokenStorage.last() }
+
+                // Send always the token, do not  wait for a 401 before adding the token to the header
                 sendWithoutRequest { request -> request.url.host == "api.omegaterapia.das.ranap.eus" }
 
+                // Define token refreshing flow
                 refreshTokens {
+
+                    // Get the new token
                     val refreshTokenInfo: TokenInfo = client.submitForm(
                         url = "https://api.omegaterapia.das.ranap.eus/auth/refresh",
                         formParameters = Parameters.build {
@@ -114,6 +162,8 @@ class APIClient @Inject constructor() {
                             append("refresh_token", oldTokens?.refreshToken ?: "")
                         }
                     ) { markAsRefreshTokenRequest() }.body()
+
+                    // Add tokens to Token Storage and return the newest one
                     bearerTokenStorage.add(BearerTokens(refreshTokenInfo.accessToken, oldTokens?.refreshToken!!))
                     bearerTokenStorage.last()
                 }
@@ -121,12 +171,22 @@ class APIClient @Inject constructor() {
         }
     }
 
+
+    /*************************************************
+     **                   Methods                   **
+     *************************************************/
+
+    //--------   User subscription to FCM   --------//
+
     suspend fun subscribeUser(FCMClientToken: String) {
         httpClient.post("https://api.omegaterapia.das.ranap.eus/notifications/subscribe") {
             contentType(ContentType.Application.Json)
             setBody(mapOf("fcm_client_token" to FCMClientToken))
         }
     }
+
+
+    //----------   User's profile image   ----------//
 
     suspend fun getUserProfile(): Bitmap {
         val response = httpClient.get("https://api.omegaterapia.das.ranap.eus/profile/image")
@@ -139,7 +199,7 @@ class APIClient @Inject constructor() {
         image.compress(Bitmap.CompressFormat.PNG, 100, stream)
         val byteArray = stream.toByteArray()
 
-        val responseData = httpClient.submitFormWithBinaryData(
+        httpClient.submitFormWithBinaryData(
             url = "https://api.omegaterapia.das.ranap.eus/profile/image",
             formData = formData {
                 append("file", byteArray, Headers.build {
@@ -148,7 +208,5 @@ class APIClient @Inject constructor() {
                 })
             }
         ) { method = HttpMethod.Put }
-        Log.d("HTTP", responseData.status.toString())
-        Log.d("HTTP", responseData.body())
     }
 }

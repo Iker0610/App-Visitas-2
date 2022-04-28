@@ -42,6 +42,7 @@ import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import das.omegaterapia.visits.R
 import das.omegaterapia.visits.model.entities.CompactVisitData
+import das.omegaterapia.visits.widgets.VisitsWidgetReceiver.Companion.UPDATE_ACTION
 import das.omegaterapia.visits.widgets.VisitsWidgetReceiver.Companion.currentUserKey
 import das.omegaterapia.visits.widgets.VisitsWidgetReceiver.Companion.todayVisitsDataKey
 import kotlinx.serialization.decodeFromString
@@ -49,27 +50,38 @@ import kotlinx.serialization.json.Json
 import kotlin.text.split
 import kotlin.text.uppercase
 
+
 /*******************************************************************************
  ****                             Visits Widget                             ****
  *******************************************************************************/
-
-
-/*************************************************
- **                    Widget                   **
- *************************************************/
 
 class VisitsWidget : GlanceAppWidget() {
     override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
 
     @Composable
     override fun Content() {
+
+        /*************************************************
+         **             Variables and States            **
+         *************************************************/
+
+        //-----------   Utility variables   ------------//
+
         val context = LocalContext.current
         val prefs = currentState<Preferences>()
+
+
+        //------------------   Data   ------------------//
 
         val user = prefs[currentUserKey]
         val data: String? = prefs[todayVisitsDataKey]
 
         val visitList: List<CompactVisitData> = if (data != null) Json.decodeFromString(data) else emptyList()
+
+
+        /*************************************************
+         **                Main Widget UI               **
+         *************************************************/
 
         Column(
             horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
@@ -79,6 +91,10 @@ class VisitsWidget : GlanceAppWidget() {
                 .padding(16.dp)
         ) {
 
+            /*------------------------------------------------
+            |                     Header                     |
+            ------------------------------------------------*/
+
             Text(
                 text = if (user != null) context.getString(R.string.widget_title, user) else context.getString(R.string.widget_title_no_user),
                 modifier = GlanceModifier.fillMaxWidth().padding(bottom = 16.dp),
@@ -86,8 +102,14 @@ class VisitsWidget : GlanceAppWidget() {
                 maxLines = 1
             )
 
+
+            /*------------------------------------------------
+            |               Body (Visit List)                |
+            ------------------------------------------------*/
+
             when {
 
+                //-----------   No user logged in   ------------//
                 user == null -> {
                     Column(
                         verticalAlignment = Alignment.CenterVertically,
@@ -97,6 +119,8 @@ class VisitsWidget : GlanceAppWidget() {
                         Text(text = context.getString(R.string.widget_no_user_content))
                     }
                 }
+
+                //------   User logged in but no visits   ------//
                 visitList.isEmpty() -> {
                     Column(
                         verticalAlignment = Alignment.CenterVertically,
@@ -106,6 +130,8 @@ class VisitsWidget : GlanceAppWidget() {
                         Text(text = context.getString(R.string.widget_empty_list))
                     }
                 }
+
+                //-------   User logged in with visits   -------//
                 else -> {
                     LazyColumn(modifier = GlanceModifier.fillMaxSize().defaultWeight()) {
                         items(visitList, itemId = { it.hashCode().toLong() }) { item ->
@@ -115,6 +141,10 @@ class VisitsWidget : GlanceAppWidget() {
                 }
             }
 
+
+            /*------------------------------------------------
+            |                 Refresh Button                 |
+            ------------------------------------------------*/
 
             Spacer(GlanceModifier.height(8.dp))
 
@@ -126,16 +156,29 @@ class VisitsWidget : GlanceAppWidget() {
         }
     }
 
+
+    /*************************************************
+     **            Widget Visit List Item           **
+     *************************************************/
+
     @Composable
     private fun VisitItem(visit: CompactVisitData) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = GlanceModifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
+
+            /*------------------------------------------------
+            |                   Visit Data                   |
+            ------------------------------------------------*/
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = GlanceModifier.fillMaxWidth().defaultWeight()
             ) {
+
+                //------------------   Hour   ------------------//
+
                 Column {
                     val hourMinute = visit.hour.split(':')
                     Text(text = hourMinute[0], style = Typography.REMARKED.style)
@@ -144,13 +187,24 @@ class VisitsWidget : GlanceAppWidget() {
 
                 Spacer(GlanceModifier.width(16.dp))
 
+
+                //----------   Client Data and Town   ----------//
+
                 Column {
                     Text(text = visit.shortDirection.uppercase(), modifier = GlanceModifier.defaultWeight(), style = Typography.OVERLINE.style)
                     Text(text = visit.client, modifier = GlanceModifier.defaultWeight(), style = Typography.BODY2.style)
                 }
             }
 
+
+            /*------------------------------------------------
+            |                 Action Buttons                 |
+            ------------------------------------------------*/
+
             Row(horizontalAlignment = Alignment.CenterHorizontally, modifier = GlanceModifier.padding(start = 16.dp)) {
+
+                //------------------   Call   ------------------//
+
                 Image(
                     provider = ImageProvider(R.drawable.widget_call_icon),
                     contentDescription = null,
@@ -160,6 +214,9 @@ class VisitsWidget : GlanceAppWidget() {
                 )
 
                 Spacer(GlanceModifier.width(16.dp))
+
+
+                //-----------   See in Google Maps   -----------//
 
                 Image(
                     provider = ImageProvider(R.drawable.widget_map_icon),
@@ -171,8 +228,28 @@ class VisitsWidget : GlanceAppWidget() {
             }
         }
     }
+
+
+    /*************************************************
+     **                  Callbacks                  **
+     *************************************************/
+
+    /**
+     * Callback action in order to refresh widget's information.
+     */
+    private class VisitsWidgetRefreshCallback : ActionCallback {
+
+        override suspend fun onRun(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
+            val intent = Intent(context, VisitsWidgetReceiver::class.java).apply { action = UPDATE_ACTION }
+            context.sendBroadcast(intent)
+        }
+    }
 }
 
+
+/*******************************************************************************
+ ****                           Widget Typography                           ****
+ *******************************************************************************/
 
 private enum class Typography(val style: TextStyle) {
     H6(
@@ -206,18 +283,3 @@ private enum class Typography(val style: TextStyle) {
 }
 
 
-/*************************************************
- **                  Callbacks                  **
- *************************************************/
-
-class VisitsWidgetRefreshCallback : ActionCallback {
-
-    override suspend fun onRun(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        val intent = Intent(context, VisitsWidgetReceiver::class.java).apply { action = UPDATE_ACTION }
-        context.sendBroadcast(intent)
-    }
-
-    companion object {
-        const val UPDATE_ACTION = "updateAction"
-    }
-}

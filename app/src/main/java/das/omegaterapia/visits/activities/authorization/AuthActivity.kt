@@ -32,7 +32,7 @@ import das.omegaterapia.visits.utils.APIClient
 import das.omegaterapia.visits.utils.BiometricAuthManager
 import das.omegaterapia.visits.utils.rememberWindowSizeClass
 import das.omegaterapia.visits.widgets.VisitsWidgetReceiver
-import das.omegaterapia.visits.widgets.VisitsWidgetRefreshCallback
+import das.omegaterapia.visits.widgets.VisitsWidgetReceiver.Companion.UPDATE_ACTION
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -171,7 +171,7 @@ class AuthActivity : FragmentActivity() {
         subscribeUser()
 
         // Update Widgets
-        val updateIntent = Intent(this, VisitsWidgetReceiver::class.java).apply { action = VisitsWidgetRefreshCallback.UPDATE_ACTION }
+        val updateIntent = Intent(this, VisitsWidgetReceiver::class.java).apply { action = UPDATE_ACTION }
         this.sendBroadcast(updateIntent)
 
         // Open the main activity

@@ -9,12 +9,17 @@ import das.omegaterapia.visits.NotificationChannelID
 import das.omegaterapia.visits.NotificationID
 import das.omegaterapia.visits.R
 
+
+/**
+ * Service for handling FCM messages when application is in foreground.
+ */
 class FCMService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {}
 
+
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         remoteMessage.notification?.let { notification ->
-            // TODO
+
             Log.d("FCM", "Message Notification Title: ${notification.title}")
             Log.d("FCM", "Message Notification Body: ${notification.body}")
 

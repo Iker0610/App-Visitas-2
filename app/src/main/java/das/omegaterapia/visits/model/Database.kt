@@ -14,7 +14,7 @@ import das.omegaterapia.visits.model.entities.VisitData
 /**
  * Room database definition abstract class (it's later instantiated in Hilt's module).
  *
- * Version: 1
+ * Version: 3
  *
  * Entities: [VisitData], [Client], [VisitData]
  * Defined DAOs: [VisitsDao], [VisitAlarmDao]

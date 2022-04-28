@@ -87,7 +87,7 @@ class VisitsViewModel @Inject constructor(
         }
     }
 
-    private val currentRemainders = visitRemainderRepository.getAllAlarmsAsSet()
+    private val currentRemainders = visitRemainderRepository.getAllRemaindersAsSet()
 
     val visitsRemainderStatuses = combine(allVisits, currentRemainders, refreshFlow) { visitList, currentRemainders, _ ->
         visitList.associate { visit ->
@@ -134,12 +134,12 @@ class VisitsViewModel @Inject constructor(
     fun deleteVisitCard(visitId: VisitId) = viewModelScope.launch(Dispatchers.IO) {
         visitsRepository.deleteVisitCard(visitId)
         if (visitsRemainderStatuses.first()[visitId.id] == RemainderStatus.ON) {
-            visitRemainderRepository.removeAlarm(visitId.id)
+            visitRemainderRepository.removeRemainder(visitId.id)
         }
     }
 
-    suspend fun addVisitRemainder(visitCard: VisitCard) = visitRemainderRepository.addAlarm(visitCard.id)
-    suspend fun removeVisitRemainder(visitCard: VisitCard) = visitRemainderRepository.removeAlarm(visitCard.id)
+    suspend fun addVisitRemainder(visitCard: VisitCard) = visitRemainderRepository.addRemainder(visitCard.id)
+    suspend fun removeVisitRemainder(visitCard: VisitCard) = visitRemainderRepository.removeRemainder(visitCard.id)
 
     /*************************************************
      **                    Utils                    **

@@ -112,7 +112,7 @@ class PreferencesRepository @Inject constructor(
     |                User Preferences                |
     ------------------------------------------------*/
     /*
-     * Curren user's username is required in these methods below.
+     * Current user's username is required in these methods below.
      *
      * All getters returns a kotlin Flow in order to get automatic updates on the settings.
      * The Preferences flow is mapped to get only the desired preference or the default value if null.
@@ -151,7 +151,12 @@ class PreferencesRepository @Inject constructor(
         }
     }
 
-    //TODO Documentar
+
+    /*------------------------------------------------
+    |                  User Profile                  |
+    ------------------------------------------------*/
+
+    //-------------   Profile Image   --------------//
     override suspend fun userProfileImage(): Bitmap {
         if (!this::profileImage.isInitialized) {
             profileImage = apiClient.getUserProfile()

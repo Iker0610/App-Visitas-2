@@ -46,6 +46,7 @@ import das.omegaterapia.visits.ui.theme.getButtonShape
  * Given a grouped list of [VisitCard]s displays them in a lazy list-
  *
  * @param groupedVisitCards: map having lists of [VisitCard], the key will be used as header.
+ * @param visitsRemainderStatuses: map that for each [VisitCard]'s id has a [RemainderStatus].
  * @param onItemEdit: action to take if one [SwipeableVisitCardItem]'s edit button is clicked.
  * @param onItemDelete: action to take if one [SwipeableVisitCardItem]'s delete button is clicked.
  * @param onScrollStateChange: callback to invoke when scroll state changes.

@@ -11,9 +11,15 @@ import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
 
+
+/**
+ * Contains all the utility required to manage visit remainder status registration.
+ *
+ * Required constructor parameter [visitAlarmDao] is injected by Hilt.
+ */
 @Singleton
 class VisitRemainderRepository @Inject constructor(private val visitAlarmDao: VisitAlarmDao) {
-    suspend fun addAlarm(alarmVisitId: String): Boolean {
+    suspend fun addRemainder(alarmVisitId: String): Boolean {
         return try {
             visitAlarmDao.addAlarm(VisitAlarm(alarmVisitId))
             true
@@ -22,7 +28,7 @@ class VisitRemainderRepository @Inject constructor(private val visitAlarmDao: Vi
         }
     }
 
-    suspend fun removeAlarm(alarmVisitId: String): Boolean {
+    suspend fun removeRemainder(alarmVisitId: String): Boolean {
         return try {
             visitAlarmDao.removeAlarm(VisitAlarm(alarmVisitId))
             true
@@ -31,7 +37,8 @@ class VisitRemainderRepository @Inject constructor(private val visitAlarmDao: Vi
         }
     }
 
-    fun getAllAlarmsAsSet(): Flow<Set<String>> = getAllAlarms().map(List<String>::toSet)
-    private fun getAllAlarms(): Flow<List<String>> = visitAlarmDao.getAllAlarms().map { it.map(VisitAlarm::visitId) }
-    fun getVisitCardsWithAlarms(): Flow<List<VisitCard>> = visitAlarmDao.getVisitCardsByIds(runBlocking { return@runBlocking getAllAlarms().first() })
+    fun getAllRemaindersAsSet(): Flow<Set<String>> = getAllRemainders().map(List<String>::toSet)
+    private fun getAllRemainders(): Flow<List<String>> = visitAlarmDao.getAllAlarms().map { it.map(VisitAlarm::visitId) }
+    fun getVisitCardsWithRemainders(): Flow<List<VisitCard>> =
+        visitAlarmDao.getVisitCardsByIds(runBlocking { return@runBlocking getAllRemainders().first() })
 }

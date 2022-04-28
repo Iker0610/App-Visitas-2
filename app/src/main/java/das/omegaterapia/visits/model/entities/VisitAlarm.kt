@@ -6,7 +6,11 @@ import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 
 
-// TODO: Anotar
+/**
+ * Data class representing the VisitAlarm weak entity.
+ *
+ * @property visitId: id of the [VisitData] that has a remainder set.
+ */
 @Entity(
     // Entity's foreign keys to [VisitData]
     foreignKeys = [

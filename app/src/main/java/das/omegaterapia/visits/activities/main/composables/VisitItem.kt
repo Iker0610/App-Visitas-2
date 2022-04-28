@@ -389,11 +389,8 @@ fun SwipeableVisitCardItem(
                         // Remainder Button
                         IconButton(
                             enabled = remainderStatus != RemainderStatus.UNAVAILABLE,
-                            onClick = {
-                                scope.launch {
-                                    onRemainder(visitCard, remainderStatus)
-                                }
-                            }) {
+                            onClick = { scope.launch { onRemainder(visitCard, remainderStatus) } }
+                        ) {
                             Icon(remainderStatus.icon, contentDescription = null)
                         }
                     }

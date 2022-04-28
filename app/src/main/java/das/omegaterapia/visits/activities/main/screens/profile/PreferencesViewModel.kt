@@ -66,6 +66,7 @@ class PreferencesViewModel @Inject constructor(
     /*************************************************
      **                    Events                   **
      *************************************************/
+
     //-------------   Profile Related   ------------//
     private fun setProfileImage(image: Bitmap) {
         viewModelScope.launch(Dispatchers.IO) {
