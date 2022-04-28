@@ -86,19 +86,32 @@ class VisitsWidget : GlanceAppWidget() {
                 maxLines = 1
             )
 
-            if (user != null) {
-                LazyColumn(modifier = GlanceModifier.fillMaxSize().defaultWeight()) {
-                    items(visitList, itemId = { it.hashCode().toLong() }) { item ->
-                        VisitItem(visit = item)
+            when {
+
+                user == null -> {
+                    Column(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = GlanceModifier.fillMaxSize().defaultWeight()
+                    ) {
+                        Text(text = context.getString(R.string.widget_no_user_content))
                     }
                 }
-            } else {
-                Column(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = GlanceModifier.fillMaxSize().defaultWeight()
-                ) {
-                    Text(text = context.getString(R.string.widget_no_user_content))
+                visitList.isEmpty() -> {
+                    Column(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = GlanceModifier.fillMaxSize().defaultWeight()
+                    ) {
+                        Text(text = context.getString(R.string.widget_empty_list))
+                    }
+                }
+                else -> {
+                    LazyColumn(modifier = GlanceModifier.fillMaxSize().defaultWeight()) {
+                        items(visitList, itemId = { it.hashCode().toLong() }) { item ->
+                            VisitItem(visit = item)
+                        }
+                    }
                 }
             }
 
