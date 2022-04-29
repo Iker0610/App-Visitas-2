@@ -141,6 +141,7 @@ private fun VisitsMap(
     ------------------------------------------------*/
 
     //-----   Geolocation Permission States   ------//
+    var geolocationPermissionsInitialized by rememberSaveable { mutableStateOf(false) }
     val locationPermissionState = rememberPermissionState(permission = Manifest.permission.ACCESS_FINE_LOCATION)
     val showCurrentLocation by derivedStateOf { locationPermissionState.status.isGranted }
 
@@ -149,6 +150,13 @@ private fun VisitsMap(
     //-----   Initial Camera Position States   -----//
     //----------------------------------------------//
 
+    //--------   initial Position States   ---------//
+    var initialLocation: LatLng? by remember { mutableStateOf(null) }
+
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(initialLocation ?: LatLng(43.264006875065775, -2.9351156221491275), 7f)
+    }
+
     //---   Geolocation Camera Position States   ---//
     var geolocationInitialized by rememberSaveable { mutableStateOf(false) }
     var locationInitialized by rememberSaveable { mutableStateOf(false) }
@@ -156,15 +164,6 @@ private fun VisitsMap(
 
     //--   Visits Based Camera Position States   ---//
     val listReadyState by derivedStateOf { locations.isNotEmpty() }
-    var previousListReadyState by rememberSaveable { mutableStateOf(listReadyState) }
-
-
-    //--------   initial Position States   ---------//
-    var initialLocation: LatLng? by remember { mutableStateOf(null) }
-
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(initialLocation ?: LatLng(43.264006875065775, -2.9351156221491275), 7f)
-    }
 
 
     /*************************************************
@@ -173,53 +172,61 @@ private fun VisitsMap(
 
     // Event for initializing camera position based on visits' location
     LaunchedEffect(listReadyState, initialLocation) {
-        previousListReadyState = listReadyState
-
-        // If initial location already initialzied by other means then exit
-        if (locationInitialized || initialLocation != null) return@LaunchedEffect
+        // If initial location already initialized by other means or visit list is empty then exit
+        if (!listReadyState || locationInitialized || initialLocation != null) return@LaunchedEffect
 
         Log.i("Location", "Applying location obtained from visit.")
 
-        // If visit list is not empty and has changed from last state initialize camera position
-        if (listReadyState && !previousListReadyState) {
-            (locations.getOrNull(locations.indexOfFirst { 0 <= it.timeDifference }) ?: locations.getOrNull(0))?.let {
-                initialLocation = it.location
-                cameraPositionState.position = CameraPosition.fromLatLngZoom(it.location, 7f)
+        (locations.getOrNull(locations.indexOfFirst { 0 <= it.timeDifference }) ?: locations.getOrNull(0))?.let { visit ->
+            initialLocation = visit.location
+            cameraPositionState.position = CameraPosition.fromLatLngZoom(visit.location, 7f)
 
-                Log.i("Location", "Location obtained from visit applied.")
-            }
-            locationInitialized = true
+            Log.i("Location", "Location obtained from visit applied.")
         }
+        locationInitialized = true
     }
 
     /**
-     * Event for asking geolocation permissions if not already granted
-     * or, if already granted, get geolocalization and initialize map's camera position.
+     * Event for asking geolocation permissions at screen creation if not already granted.
      */
     LaunchedEffect(true) {
         // If already initialized exit
-        if (geolocationInitialized) return@LaunchedEffect
+        if (geolocationPermissionsInitialized || locationPermissionState.status.isGranted) return@LaunchedEffect
 
         // If user hasn't granted location permissions ask for them
         if (!locationPermissionState.status.isGranted) {
+            Log.i("Location", "Asking for Geolocation permissions.")
             locationPermissionState.launchPermissionRequest()
         }
 
-        // If user gave us permissions then initialize map's camera position.
-        else {
-            val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-            fusedLocationClient.lastLocation.await()?.let { location ->
-                LatLng(location.latitude, location.longitude).let { locationLatLng ->
-                    Log.i("Location", "Geolocation obtained.")
+        geolocationPermissionsInitialized = true
+    }
 
-                    cameraPositionState.position = CameraPosition.fromLatLngZoom(locationLatLng, 7f)
-                    initialLocation = locationLatLng
+    /**
+     * Event for initializing camera position with user's geolocalization.
+     */
+    LaunchedEffect(locationPermissionState.status.isGranted) {
+        Log.i("Location", "Geolocation initialization event launched.")
 
-                    Log.i("Location", "Geolocation applied.")
-                }
+        // If already initialized exit or without permissions
+        if (geolocationInitialized || !locationPermissionState.status.isGranted) return@LaunchedEffect
+
+        Log.i("Location", "Trying to obtain Geolocation.")
+
+        // Initialize map's camera position.
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+        fusedLocationClient.lastLocation.await()?.let { location ->
+            LatLng(location.latitude, location.longitude).let { locationLatLng ->
+                Log.i("Location", "Geolocation obtained.")
+
+                cameraPositionState.position = CameraPosition.fromLatLngZoom(locationLatLng, 7f)
+                initialLocation = locationLatLng
+
+                geolocationInitialized = true
+
+                Log.i("Location", "Geolocation applied.")
             }
         }
-        geolocationInitialized = true
     }
 
 
