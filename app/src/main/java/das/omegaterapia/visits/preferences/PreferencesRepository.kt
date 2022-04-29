@@ -2,6 +2,7 @@ package das.omegaterapia.visits.preferences
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -13,6 +14,7 @@ import das.omegaterapia.visits.utils.APIClient
 import das.omegaterapia.visits.utils.CipherUtil
 import das.omegaterapia.visits.utils.NoCryptographicKeyException
 import das.omegaterapia.visits.utils.TemporalConverter
+import io.ktor.client.plugins.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -163,13 +165,24 @@ class PreferencesRepository @Inject constructor(
     //-------------   Profile Image   --------------//
     override suspend fun userProfileImage(): Bitmap {
         if (!this::profileImage.isInitialized) {
-            profileImage = apiClient.getUserProfile()
+            try {
+                profileImage = apiClient.getUserProfile()
+            } catch (e: ResponseException) {
+                Log.e("HTTP", "Couldn't get profile image.")
+                e.printStackTrace()
+            }
         }
         return profileImage
     }
 
-    override suspend fun setUserProfileImage(image: Bitmap) {
-        profileImage = image
-        apiClient.uploadUserProfile(image)
+    override suspend fun setUserProfileImage(image: Bitmap): Bitmap {
+        try {
+            apiClient.uploadUserProfile(image)
+            profileImage = image
+        } catch (e: ResponseException) {
+            Log.e("HTTP", "Couldn't upload profile image.")
+            e.printStackTrace()
+        }
+        return profileImage
     }
 }

@@ -71,8 +71,7 @@ class PreferencesViewModel @Inject constructor(
     private fun setProfileImage(image: Bitmap) {
         viewModelScope.launch(Dispatchers.IO) {
             profilePicture = null
-            preferencesRepository.setUserProfileImage(image)
-            profilePicture = image
+            profilePicture = preferencesRepository.setUserProfileImage(image)
         }
     }
 

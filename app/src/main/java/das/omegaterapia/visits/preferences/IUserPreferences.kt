@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 // Interface to access a given user preferences
 interface IUserPreferences {
     suspend fun userProfileImage(): Bitmap
-    suspend fun setUserProfileImage(image: Bitmap)
+    suspend fun setUserProfileImage(image: Bitmap): Bitmap
 
     fun userLanguage(user: String): Flow<String>
     suspend fun setUserLanguage(user: String, langCode: String)
