@@ -11,6 +11,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import das.omegaterapia.visits.model.entities.AuthUser
 import das.omegaterapia.visits.utils.APIClient
 import das.omegaterapia.visits.utils.CipherUtil
+import das.omegaterapia.visits.utils.NoCryptographicKeyException
 import das.omegaterapia.visits.utils.TemporalConverter
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -95,6 +96,9 @@ class PreferencesRepository @Inject constructor(
                 Json.decodeFromString(data)
             } else null
         } catch (e: IllegalArgumentException) {
+            e.printStackTrace()
+            null
+        } catch (e: NoCryptographicKeyException) {
             e.printStackTrace()
             null
         }

@@ -10,6 +10,8 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import javax.inject.Inject
 
+class NoCryptographicKeyException : Exception()
+
 interface CipherUtil {
     fun encryptData(keyAlias: String, data: String): String
     fun decryptData(keyAlias: String, encryptedDataWithIV: String): String
@@ -99,9 +101,14 @@ class AESCipher @Inject constructor() : CipherUtil {
     /**
      * Given the [keyAlias] and encrypted data [iv] decrypts the given [encryptedData] and returns it as the original string.
      */
+    @Throws(NoCryptographicKeyException::class)
     private fun decryptData(keyAlias: String, encryptedData: ByteArray, iv: ByteArray): String {
-        // Initialize the cipher in decrypt mode
-        cipher.init(Cipher.DECRYPT_MODE, getSecretKey(keyAlias), GCMParameterSpec(128, iv))
+        try {
+            // Initialize the cipher in decrypt mode
+            cipher.init(Cipher.DECRYPT_MODE, getSecretKey(keyAlias), GCMParameterSpec(128, iv))
+        } catch (e: NullPointerException) {
+            throw NoCryptographicKeyException()
+        }
 
         // Decrypt data and convert to string
         return String(cipher.doFinal(encryptedData))
@@ -112,6 +119,7 @@ class AESCipher @Inject constructor() : CipherUtil {
      *
      * @param encryptedDataWithIV - String that contains both the used IV and the encrypted data.
      */
+    @Throws(NoCryptographicKeyException::class)
     override fun decryptData(keyAlias: String, encryptedDataWithIV: String): String {
         // Split the encrypted string to retrieve the used IV and the encrypted data.
         val split = encryptedDataWithIV.split(IV_SEPARATOR.toRegex())
